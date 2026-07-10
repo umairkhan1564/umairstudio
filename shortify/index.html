@@ -94,11 +94,15 @@
       <div>
         <label>Caption style</label>
         <select id="caps">
-          <option value="yellow">Yellow (viral)</option>
-          <option value="white">White</option>
-          <option value="green">Green</option>
-          <option value="cyan">Cyan pop</option>
-          <option value="boxed">Boxed (black bg)</option>
+          <option>Karaoke Yellow</option>
+          <option>Karaoke Green</option>
+          <option>Word Pop</option>
+          <option>Bold White</option>
+          <option>Yellow Pop</option>
+          <option>TikTok Thick</option>
+          <option>Boxed Black</option>
+          <option>Green Screen</option>
+          <option>Minimal</option>
           <option value="off">No captions</option>
         </select>
       </div>
@@ -121,7 +125,7 @@
 const { FFmpeg } = FFmpegWASM;
 
 const $ = id => document.getElementById(id);
-let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'yellow';
+let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Karaoke Yellow';
 
 const drop = $('drop'), fileInput = $('file');
 drop.onclick = () => fileInput.click();
@@ -188,15 +192,21 @@ function pickHighlights(chunks, minLen, maxLen, count){
 // fontconfig, so subtitles/fontsdir renders blank). 3 words at a time, timed.
 function escTxt(t){ return (t||'').toUpperCase().replace(/[’'`]/g,'').replace(/[:\\%{}]/g,'')
   .replace(/[^A-Z0-9 .,!?-]/g,'').replace(/\s+/g,' ').trim().slice(0,38); }
+// 9 caption styles (match the desktop app). Each is a full drawtext param string.
 const CAP_STYLES = {
-  yellow: 'fontcolor=yellow:borderw=5:bordercolor=black',
-  white:  'fontcolor=white:borderw=5:bordercolor=black',
-  green:  'fontcolor=0x2bff88:borderw=5:bordercolor=black',
-  cyan:   'fontcolor=0x22e0ff:borderw=5:bordercolor=black',
-  boxed:  'fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=16',
+  'Karaoke Yellow': 'fontsize=42:fontcolor=yellow:borderw=5:bordercolor=black',
+  'Karaoke Green':  'fontsize=42:fontcolor=0x2bff88:borderw=5:bordercolor=black',
+  'Word Pop':       'fontsize=48:fontcolor=white:borderw=7:bordercolor=black',
+  'Bold White':     'fontsize=42:fontcolor=white:borderw=4:bordercolor=black',
+  'Yellow Pop':     'fontsize=50:fontcolor=yellow:borderw=7:bordercolor=black',
+  'TikTok Thick':   'fontsize=44:fontcolor=white:borderw=10:bordercolor=black',
+  'Boxed Black':    'fontsize=40:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=16',
+  'Green Screen':   'fontsize=42:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=14',
+  'Minimal':        'fontsize=36:fontcolor=white:borderw=2:bordercolor=black@0.7',
 };
+const CAP_KEYS = Object.keys(CAP_STYLES);
 function captionFilters(seg){
-  const style = CAP_STYLES[CAPS] || CAP_STYLES.yellow;
+  const style = CAP_STYLES[CAPS] || CAP_STYLES['Karaoke Yellow'];
   const parts=[];
   for(const c of seg.chunks){
     const words=(c.t||'').trim().split(/\s+/).filter(Boolean); if(!words.length) continue;
@@ -204,7 +214,7 @@ function captionFilters(seg){
     for(let g=0; g<G; g++){
       const txt=escTxt(words.slice(g*3, g*3+3).join(' ')); if(!txt) continue;
       const gs=Math.max(0,(cs+(g/G)*(ce-cs))-seg.start), ge=Math.max(gs+0.2,(cs+((g+1)/G)*(ce-cs))-seg.start);
-      parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:fontsize=40:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
+      parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
     }
   }
   return parts;
@@ -231,7 +241,7 @@ async function renderShort(i, card){
         <div><label>End (sec)</label><input type="number" step="0.5" class="ee" value="${s.end.toFixed(1)}"></div>
       </div>
       <label style="margin-top:8px">Caption style</label>
-      <select class="ec">${['yellow','white','green','cyan','boxed','off'].map(v=>`<option value="${v}"${v===CAPS?' selected':''}>${v==='off'?'No captions':v.charAt(0).toUpperCase()+v.slice(1)}</option>`).join('')}</select>
+      <select class="ec">${[...CAP_KEYS,'off'].map(v=>`<option value="${v}"${v===CAPS?' selected':''}>${v==='off'?'No captions':v}</option>`).join('')}</select>
       <button class="rr">🔁 Re-render this short</button>
       <div class="spin hidden">re-rendering… thora wait</div>
     </div>`;
