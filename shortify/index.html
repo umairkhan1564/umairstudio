@@ -162,7 +162,7 @@ function transcribe(pcm){
     const onMsg = ev => {
       const d = ev.data;
       if(d.type==='model') prog(6 + (d.progress||0)*0.14, 'Downloading AI model… '+Math.round(d.progress||0)+'%');
-      else if(d.type==='transcribing') prog(32, 'Transcribing (AI)… lambi video par thora wait — tab hang nahi hoga');
+      else if(d.type==='transcribing') prog(32, 'Transcribing with AI… this can take a little while');
       else if(d.type==='done'){ w.removeEventListener('message', onMsg); resolve(d.chunks); }
       else if(d.type==='error'){ w.removeEventListener('message', onMsg); reject(new Error(d.error)); }
     };
@@ -243,33 +243,23 @@ async function renderShort(i, card){
       <label style="margin-top:8px">Caption style</label>
       <select class="ec">${[...CAP_KEYS,'off'].map(v=>`<option value="${v}"${v===CAPS?' selected':''}>${v==='off'?'No captions':v}</option>`).join('')}</select>
       <button class="rr">🔁 Re-render this short</button>
-      <div class="spin hidden">re-rendering… thora wait</div>
+      <div class="spin hidden">re-rendering… please wait</div>
     </div>`;
   const edit=card.querySelector('.edit');
   card.querySelector('.ebtn').onclick=()=>edit.classList.toggle('hidden');
   card.querySelector('.rr').onclick=async()=>{
     const ns=parseFloat(card.querySelector('.es').value), ne=parseFloat(card.querySelector('.ee').value);
-    if(!(ne-ns>=1)){ alert('End, start se kam se kam 1 sec bara ho.'); return; }
+    if(!(ne-ns>=1)){ alert('End must be at least 1 second after start.'); return; }
     SEGMENTS[i].start=ns; SEGMENTS[i].end=ne; CAPS=card.querySelector('.ec').value;
     const spin=card.querySelector('.spin'); spin.classList.remove('hidden');
-    try{ await renderShort(i, card); }catch(e){ alert('Re-render fail: '+(e.message||e)); spin.classList.add('hidden'); }
+    try{ await renderShort(i, card); }catch(e){ alert('Re-render failed: '+(e.message||e)); spin.classList.add('hidden'); }
   };
   if(!card.parentNode) $('results').appendChild(card);
   return card;
 }
 
 $('go').onclick = async () => {
-  if(!videoFile){ alert('Pehle ek video choose karein.'); return; }
-  // Browser Shortify is for SHORT clips — long episodes make in-browser Whisper
-  // extremely slow / freeze the tab. Warn before it hangs.
-  const dur = await new Promise(res=>{ const v=document.createElement('video'); v.preload='metadata';
-    v.onloadedmetadata=()=>{ const d=v.duration||0; URL.revokeObjectURL(v.src); res(d); };
-    v.onerror=()=>res(0); v.src=URL.createObjectURL(videoFile); });
-  const mins = dur ? dur/60 : 0;
-  if(mins > 25 || videoFile.size > 500*1048576){
-    const info = mins ? Math.round(mins)+' minute' : Math.round(videoFile.size/1048576)+' MB';
-    if(!confirm('Ye video '+info+' ki hai — kaafi lambi. Browser me itni lambi video ki AI transcription bohot slow ho sakti hai.\n\nBehtar: choti clip daalein, ya poore episode ke liye desktop Shortify. Phir bhi try karein?')) { return; }
-  }
+  if(!videoFile){ alert('Please choose a video first.'); return; }
   $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
   try{
     prog(2,'Loading video engine…'); await loadFFmpeg();
