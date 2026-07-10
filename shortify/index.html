@@ -227,7 +227,16 @@ async function renderShort(i, card){
 
 $('go').onclick = async () => {
   if(!videoFile){ alert('Pehle ek video choose karein.'); return; }
-  if(videoFile.size > 400*1048576 && !confirm('Ye video bari hai ('+Math.round(videoFile.size/1048576)+' MB). Browser choti videos (kuch minute) pe best chalta hai, bari videos crash kar sakti hain. Phir bhi try karein?')) return;
+  // Browser Shortify is for SHORT clips — long episodes make in-browser Whisper
+  // extremely slow / freeze the tab. Warn before it hangs.
+  const dur = await new Promise(res=>{ const v=document.createElement('video'); v.preload='metadata';
+    v.onloadedmetadata=()=>{ const d=v.duration||0; URL.revokeObjectURL(v.src); res(d); };
+    v.onerror=()=>res(0); v.src=URL.createObjectURL(videoFile); });
+  const mins = dur ? dur/60 : 0;
+  if(mins > 12 || videoFile.size > 200*1048576){
+    const info = mins ? Math.round(mins)+' minute' : Math.round(videoFile.size/1048576)+' MB';
+    if(!confirm('Ye video '+info+' ki hai. Shortify (browser) CHOTI clips (~10 min tak) ke liye best hai — lambi/bari videos bohot slow hoti hain aur browser tab hang kar sakta hai.\n\nBehtar: koi choti clip daalein (ya video pehle trim kar lein). Poore episode ke liye desktop Shortify use karein.\n\nPhir bhi try karein?')) { return; }
+  }
   $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
   try{
     prog(2,'Loading video engine…'); await loadFFmpeg();
