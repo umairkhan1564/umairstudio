@@ -92,8 +92,15 @@
         </select>
       </div>
       <div>
-        <label>Captions</label>
-        <select id="caps"><option value="1">On (burned in)</option><option value="0">Off</option></select>
+        <label>Caption style</label>
+        <select id="caps">
+          <option value="yellow">Yellow (viral)</option>
+          <option value="white">White</option>
+          <option value="green">Green</option>
+          <option value="cyan">Cyan pop</option>
+          <option value="boxed">Boxed (black bg)</option>
+          <option value="off">No captions</option>
+        </select>
       </div>
     </div>
 
@@ -111,12 +118,10 @@
 
 <script src="/vendor/ffmpeg.js"></script>
 <script type="module">
-import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm';
 const { FFmpeg } = FFmpegWASM;
-env.allowLocalModels = false;
 
 const $ = id => document.getElementById(id);
-let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = true;
+let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'yellow';
 
 const drop = $('drop'), fileInput = $('file');
 drop.onclick = () => fileInput.click();
@@ -144,12 +149,22 @@ async function loadFFmpeg(){
   return ffmpeg;
 }
 
-async function loadWhisper(){
-  if (transcriber) return transcriber;
-  transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-    progress_callback: p => { if(p.status==='progress') prog(5 + (p.progress||0)*0.15, 'Downloading AI model… ' + Math.round(p.progress||0) + '%'); }
+// Transcribe in a Web Worker so the tab stays responsive (long videos won't freeze)
+let whisperWorker = null;
+function transcribe(pcm){
+  return new Promise((resolve, reject)=>{
+    if(!whisperWorker) whisperWorker = new Worker('/shortify/whisper-worker.js', {type:'module'});
+    const w = whisperWorker;
+    const onMsg = ev => {
+      const d = ev.data;
+      if(d.type==='model') prog(6 + (d.progress||0)*0.14, 'Downloading AI model… '+Math.round(d.progress||0)+'%');
+      else if(d.type==='transcribing') prog(32, 'Transcribing (AI)… lambi video par thora wait — tab hang nahi hoga');
+      else if(d.type==='done'){ w.removeEventListener('message', onMsg); resolve(d.chunks); }
+      else if(d.type==='error'){ w.removeEventListener('message', onMsg); reject(new Error(d.error)); }
+    };
+    w.addEventListener('message', onMsg);
+    w.postMessage({ pcm }, [pcm.buffer]);
   });
-  return transcriber;
 }
 
 // group speech into segments of [minLen, maxLen], ranked by talk density
@@ -173,7 +188,15 @@ function pickHighlights(chunks, minLen, maxLen, count){
 // fontconfig, so subtitles/fontsdir renders blank). 3 words at a time, timed.
 function escTxt(t){ return (t||'').toUpperCase().replace(/[’'`]/g,'').replace(/[:\\%{}]/g,'')
   .replace(/[^A-Z0-9 .,!?-]/g,'').replace(/\s+/g,' ').trim().slice(0,38); }
+const CAP_STYLES = {
+  yellow: 'fontcolor=yellow:borderw=5:bordercolor=black',
+  white:  'fontcolor=white:borderw=5:bordercolor=black',
+  green:  'fontcolor=0x2bff88:borderw=5:bordercolor=black',
+  cyan:   'fontcolor=0x22e0ff:borderw=5:bordercolor=black',
+  boxed:  'fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=16',
+};
 function captionFilters(seg){
+  const style = CAP_STYLES[CAPS] || CAP_STYLES.yellow;
   const parts=[];
   for(const c of seg.chunks){
     const words=(c.t||'').trim().split(/\s+/).filter(Boolean); if(!words.length) continue;
@@ -181,7 +204,7 @@ function captionFilters(seg){
     for(let g=0; g<G; g++){
       const txt=escTxt(words.slice(g*3, g*3+3).join(' ')); if(!txt) continue;
       const gs=Math.max(0,(cs+(g/G)*(ce-cs))-seg.start), ge=Math.max(gs+0.2,(cs+((g+1)/G)*(ce-cs))-seg.start);
-      parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':fontcolor=yellow:fontsize=40:borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
+      parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:fontsize=40:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
     }
   }
   return parts;
@@ -190,7 +213,7 @@ function captionFilters(seg){
 async function renderShort(i, card){
   const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
-  if(CAPS) vf.push(...captionFilters(s));
+  if(CAPS!=='off') vf.push(...captionFilters(s));
   const outName=`short_${i}_${Date.now()}.mp4`;
   await ffmpeg.exec(['-ss',String(s.start),'-i','in','-t',String(dur),'-vf',vf.join(','),
     '-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
@@ -207,8 +230,8 @@ async function renderShort(i, card){
         <div><label>Start (sec)</label><input type="number" step="0.5" class="es" value="${s.start.toFixed(1)}"></div>
         <div><label>End (sec)</label><input type="number" step="0.5" class="ee" value="${s.end.toFixed(1)}"></div>
       </div>
-      <label style="margin-top:8px">Captions</label>
-      <select class="ec"><option value="1"${CAPS?' selected':''}>On</option><option value="0"${CAPS?'':' selected'}>Off</option></select>
+      <label style="margin-top:8px">Caption style</label>
+      <select class="ec">${['yellow','white','green','cyan','boxed','off'].map(v=>`<option value="${v}"${v===CAPS?' selected':''}>${v==='off'?'No captions':v.charAt(0).toUpperCase()+v.slice(1)}</option>`).join('')}</select>
       <button class="rr">🔁 Re-render this short</button>
       <div class="spin hidden">re-rendering… thora wait</div>
     </div>`;
@@ -217,7 +240,7 @@ async function renderShort(i, card){
   card.querySelector('.rr').onclick=async()=>{
     const ns=parseFloat(card.querySelector('.es').value), ne=parseFloat(card.querySelector('.ee').value);
     if(!(ne-ns>=1)){ alert('End, start se kam se kam 1 sec bara ho.'); return; }
-    SEGMENTS[i].start=ns; SEGMENTS[i].end=ne; CAPS=card.querySelector('.ec').value==='1';
+    SEGMENTS[i].start=ns; SEGMENTS[i].end=ne; CAPS=card.querySelector('.ec').value;
     const spin=card.querySelector('.spin'); spin.classList.remove('hidden');
     try{ await renderShort(i, card); }catch(e){ alert('Re-render fail: '+(e.message||e)); spin.classList.add('hidden'); }
   };
@@ -240,7 +263,6 @@ $('go').onclick = async () => {
   $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
   try{
     prog(2,'Loading video engine…'); await loadFFmpeg();
-    prog(6,'Loading AI model…'); await loadWhisper();
     const fm = ffmpeg;
     await fm.writeFile('in', new Uint8Array(await videoFile.arrayBuffer()));
     prog(22,'Extracting audio…');
@@ -249,14 +271,14 @@ $('go').onclick = async () => {
     prog(30,'Transcribing (AI)…');
     const audioCtx = new AudioContext({sampleRate:16000});
     const buf = await audioCtx.decodeAudioData(wav.buffer.slice(0));
-    const out = await transcriber(buf.getChannelData(0), { return_timestamps:true, chunk_length_s:30, stride_length_s:5 });
-    const chunks = out.chunks || [];
+    const pcm = new Float32Array(buf.getChannelData(0));
+    const chunks = await transcribe(pcm);
 
     let minLen=10, maxLen=60;
     const lv = $('len').value;
     if(lv!=='auto'){ const p=lv.split('-').map(Number); minLen=p[0]; maxLen=p[1]; }
     const count = parseInt($('count').value)||0;
-    CAPS = $('caps').value==='1';
+    CAPS = $('caps').value;
     SEGMENTS = pickHighlights(chunks, minLen, maxLen, count);
     if(!SEGMENTS.length){ prog(100,'No speech found to clip.'); $('go').disabled=false; return; }
 
