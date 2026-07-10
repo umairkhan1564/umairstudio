@@ -256,9 +256,9 @@ $('go').onclick = async () => {
     v.onloadedmetadata=()=>{ const d=v.duration||0; URL.revokeObjectURL(v.src); res(d); };
     v.onerror=()=>res(0); v.src=URL.createObjectURL(videoFile); });
   const mins = dur ? dur/60 : 0;
-  if(mins > 12 || videoFile.size > 200*1048576){
+  if(mins > 25 || videoFile.size > 500*1048576){
     const info = mins ? Math.round(mins)+' minute' : Math.round(videoFile.size/1048576)+' MB';
-    if(!confirm('Ye video '+info+' ki hai. Shortify (browser) CHOTI clips (~10 min tak) ke liye best hai — lambi/bari videos bohot slow hoti hain aur browser tab hang kar sakta hai.\n\nBehtar: koi choti clip daalein (ya video pehle trim kar lein). Poore episode ke liye desktop Shortify use karein.\n\nPhir bhi try karein?')) { return; }
+    if(!confirm('Ye video '+info+' ki hai — kaafi lambi. Browser me itni lambi video ki AI transcription bohot slow ho sakti hai.\n\nBehtar: choti clip daalein, ya poore episode ke liye desktop Shortify. Phir bhi try karein?')) { return; }
   }
   $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
   try{
