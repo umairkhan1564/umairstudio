@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shortify — Long video to viral shorts · UmairStudio</title>
+<meta name="description" content="Turn long videos into ready-to-post vertical shorts with auto captions — free, right in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
+<style>
+  :root{--bg:#0a0b14;--card:#141627;--line:#242742;--fg:#eef0ff;--mut:#a2a7c9;--accent:#7c5cff;--accent2:#c05cff;--green:#22c55e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(10,11,20,.8);backdrop-filter:blur(10px);z-index:20}
+  nav{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:18px}
+  .logo .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:16px}
+  .back{color:var(--mut);font-size:14px}.back:hover{color:var(--fg)}
+  h1{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:38px 0 8px;text-align:center}
+  .lead{color:var(--mut);text-align:center;margin-bottom:32px;font-size:17px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:20px}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:44px 20px;text-align:center;cursor:pointer;transition:.18s}
+  .drop:hover{border-color:var(--accent);background:rgba(124,92,255,.05)}
+  .drop .big{font-size:40px;margin-bottom:10px}
+  .drop .t{font-weight:600;font-size:17px}
+  .drop .s{color:var(--mut);font-size:14px;margin-top:4px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:20px}
+  label{display:block;font-size:13px;color:var(--mut);margin-bottom:6px}
+  select,input{width:100%;background:#0c0d1a;color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;font-family:inherit}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px;padding:13px 22px;border-radius:11px;border:0;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:100%;margin-top:20px;transition:.18s}
+  .btn:hover{filter:brightness(1.1)} .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+  .prog{display:none;margin-top:22px}
+  .bar{height:8px;background:#0c0d1a;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
+  .stage{font-size:14px;color:var(--mut);margin-top:10px;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:8px}
+  .clip{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .clip video{width:100%;border-radius:9px;background:#000;aspect-ratio:9/16;object-fit:contain}
+  .clip .cap{font-size:13px;margin:8px 2px;color:var(--fg)}
+  .clip a{display:block;text-align:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:600;font-size:14px;margin-top:6px}
+  .clip a:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+  .clip .ebtn{width:100%;margin-top:6px;background:transparent;color:var(--mut);border:1px solid var(--line);border-radius:9px;padding:8px;font-size:13px;font-weight:600;cursor:pointer}
+  .clip .ebtn:hover{color:var(--fg);border-color:var(--accent)}
+  .edit{margin-top:8px;border-top:1px solid var(--line);padding-top:10px}
+  .edit .row2{display:flex;gap:8px}
+  .edit .row2>div{flex:1}
+  .edit label{font-size:11px;color:var(--mut);margin-bottom:3px}
+  .edit input,.edit select{width:100%;background:#0c0d1a;color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px;font-size:13px}
+  .edit .rr{width:100%;margin-top:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:8px;padding:9px;font-weight:600;font-size:13px;cursor:pointer}
+  .edit .spin{font-size:12px;color:var(--accent2);text-align:center;margin-top:6px}
+  .note{background:rgba(124,92,255,.08);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--mut);margin-top:16px}
+  .hidden{display:none}
+</style>
+<script type="importmap">
+{ "imports": {
+  "buffer": "https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm",
+  "long": "https://cdn.jsdelivr.net/npm/long@5.2.3/+esm"
+}}
+</script>
+</head>
+<body>
+<header><div class="wrap"><nav>
+  <a href="../" class="logo"><span class="mark">⚡</span> UmairStudio</a>
+  <a href="../" class="back">← All tools</a>
+</nav></div></header>
+
+<div class="wrap">
+  <h1>✂️ Shortify</h1>
+  <p class="lead">Long video → viral shorts with auto captions. Runs free in your browser.</p>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <div class="big">🎬</div>
+      <div class="t">Choose a video (or drag it here)</div>
+      <div class="s" id="fname">MP4 · MOV · WebM — up to a few minutes works best</div>
+      <input type="file" id="file" accept="video/*" class="hidden">
+    </div>
+
+    <div class="opts">
+      <div>
+        <label>How many shorts</label>
+        <select id="count"><option value="0">Auto</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      </div>
+      <div>
+        <label>Short length</label>
+        <select id="len">
+          <option value="auto">Auto</option>
+          <option value="10-60">10s to 60s</option>
+          <option value="60-90">60s to 90s</option>
+          <option value="90-180">90s to 180s</option>
+        </select>
+      </div>
+      <div>
+        <label>Captions</label>
+        <select id="caps"><option value="1">On (burned in)</option><option value="0">Off</option></select>
+      </div>
+    </div>
+
+    <button class="btn" id="go">✨ Make shorts</button>
+
+    <div class="prog" id="prog">
+      <div class="bar"><i id="fill"></i></div>
+      <div class="stage" id="stage">Starting…</div>
+    </div>
+    <div class="note">First run downloads the AI model (~40 MB) and the video engine once — after that it's cached and fast. Everything happens on your device; your video never leaves your browser.</div>
+  </div>
+
+  <div id="results" class="grid"></div>
+</div>
+
+<script src="/vendor/ffmpeg.js"></script>
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm';
+const { FFmpeg } = FFmpegWASM;
+env.allowLocalModels = false;
+
+const $ = id => document.getElementById(id);
+let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = true;
+
+const drop = $('drop'), fileInput = $('file');
+drop.onclick = () => fileInput.click();
+drop.ondragover = e => { e.preventDefault(); drop.style.borderColor = 'var(--accent)'; };
+drop.ondragleave = () => drop.style.borderColor = '';
+drop.ondrop = e => { e.preventDefault(); drop.style.borderColor=''; if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); };
+fileInput.onchange = () => fileInput.files[0] && setFile(fileInput.files[0]);
+function setFile(f){ videoFile = f; $('fname').textContent = f.name + ' — ' + (f.size/1048576).toFixed(1) + ' MB'; }
+
+function prog(pct, msg){ $('prog').style.display='block'; $('fill').style.width=Math.round(pct)+'%'; if(msg) $('stage').textContent=msg; }
+
+async function loadFFmpeg(){
+  if (ffmpeg) return ffmpeg;
+  ffmpeg = new FFmpeg();
+  await ffmpeg.load({
+    coreURL: new URL('/vendor/ffmpeg-core.js', location.origin).href,
+    wasmURL: new URL('/vendor/ffmpeg-core.wasm', location.origin).href,
+  });
+  try{
+    const fontData = new Uint8Array(await (await fetch('/vendor/font.ttf')).arrayBuffer());
+    await ffmpeg.writeFile('/font.ttf', fontData);
+    try{ await ffmpeg.createDir('/fonts'); }catch(e){}
+    await ffmpeg.writeFile('/fonts/font.ttf', fontData);
+  }catch(e){ console.warn('font load failed', e); }
+  return ffmpeg;
+}
+
+async function loadWhisper(){
+  if (transcriber) return transcriber;
+  transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+    progress_callback: p => { if(p.status==='progress') prog(5 + (p.progress||0)*0.15, 'Downloading AI model… ' + Math.round(p.progress||0) + '%'); }
+  });
+  return transcriber;
+}
+
+// group speech into segments of [minLen, maxLen], ranked by talk density
+function pickHighlights(chunks, minLen, maxLen, count){
+  if(!chunks.length) return [];
+  const mk = (s,e,ch)=>({ start:s, end:Math.min(e, s+maxLen), text: ch.map(x=>x.text).join('').trim(),
+    chunks: ch.map(x=>({ s:x.timestamp[0], e:x.timestamp[1] ?? x.timestamp[0], t:x.text })) });
+  const segs=[]; let cur=[], start=chunks[0].timestamp[0];
+  for(const c of chunks){
+    cur.push(c);
+    const end = c.timestamp[1] ?? c.timestamp[0];
+    if(end - start >= minLen){ segs.push(mk(start,end,cur)); cur=[]; start=end; }
+  }
+  if(cur.length){ const end = cur[cur.length-1].timestamp[1] ?? start;
+    if(end - start >= Math.min(6, minLen)) segs.push(mk(start,end,cur)); }
+  segs.sort((a,b)=> b.text.length - a.text.length);
+  return count>0 ? segs.slice(0,count) : segs.slice(0, Math.min(segs.length, 6));
+}
+
+// drawtext is font-file based (reliable in wasm — this core's libass has no
+// fontconfig, so subtitles/fontsdir renders blank). 3 words at a time, timed.
+function escTxt(t){ return (t||'').toUpperCase().replace(/[’'`]/g,'').replace(/[:\\%{}]/g,'')
+  .replace(/[^A-Z0-9 .,!?-]/g,'').replace(/\s+/g,' ').trim().slice(0,38); }
+function captionFilters(seg){
+  const parts=[];
+  for(const c of seg.chunks){
+    const words=(c.t||'').trim().split(/\s+/).filter(Boolean); if(!words.length) continue;
+    const cs=c.s, ce=Math.max(c.e, c.s+0.4), G=Math.ceil(words.length/3);
+    for(let g=0; g<G; g++){
+      const txt=escTxt(words.slice(g*3, g*3+3).join(' ')); if(!txt) continue;
+      const gs=Math.max(0,(cs+(g/G)*(ce-cs))-seg.start), ge=Math.max(gs+0.2,(cs+((g+1)/G)*(ce-cs))-seg.start);
+      parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':fontcolor=yellow:fontsize=40:borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
+    }
+  }
+  return parts;
+}
+
+async function renderShort(i, card){
+  const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
+  const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
+  if(CAPS) vf.push(...captionFilters(s));
+  const outName=`short_${i}_${Date.now()}.mp4`;
+  await ffmpeg.exec(['-ss',String(s.start),'-i','in','-t',String(dur),'-vf',vf.join(','),
+    '-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
+  const data=await ffmpeg.readFile(outName);
+  const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
+  card = card || document.createElement('div');
+  card.className='clip'; card.id='clip'+i;
+  card.innerHTML=`<video src="${url}" controls preload="metadata"></video>
+    <div class="cap">${(s.text||'').slice(0,70) || 'Short '+(i+1)}</div>
+    <a href="${url}" download="short_${i+1}.mp4">⬇ Download</a>
+    <button class="ebtn">✏️ Edit trim</button>
+    <div class="edit hidden">
+      <div class="row2">
+        <div><label>Start (sec)</label><input type="number" step="0.5" class="es" value="${s.start.toFixed(1)}"></div>
+        <div><label>End (sec)</label><input type="number" step="0.5" class="ee" value="${s.end.toFixed(1)}"></div>
+      </div>
+      <label style="margin-top:8px">Captions</label>
+      <select class="ec"><option value="1"${CAPS?' selected':''}>On</option><option value="0"${CAPS?'':' selected'}>Off</option></select>
+      <button class="rr">🔁 Re-render this short</button>
+      <div class="spin hidden">re-rendering… thora wait</div>
+    </div>`;
+  const edit=card.querySelector('.edit');
+  card.querySelector('.ebtn').onclick=()=>edit.classList.toggle('hidden');
+  card.querySelector('.rr').onclick=async()=>{
+    const ns=parseFloat(card.querySelector('.es').value), ne=parseFloat(card.querySelector('.ee').value);
+    if(!(ne-ns>=1)){ alert('End, start se kam se kam 1 sec bara ho.'); return; }
+    SEGMENTS[i].start=ns; SEGMENTS[i].end=ne; CAPS=card.querySelector('.ec').value==='1';
+    const spin=card.querySelector('.spin'); spin.classList.remove('hidden');
+    try{ await renderShort(i, card); }catch(e){ alert('Re-render fail: '+(e.message||e)); spin.classList.add('hidden'); }
+  };
+  if(!card.parentNode) $('results').appendChild(card);
+  return card;
+}
+
+$('go').onclick = async () => {
+  if(!videoFile){ alert('Pehle ek video choose karein.'); return; }
+  if(videoFile.size > 400*1048576 && !confirm('Ye video bari hai ('+Math.round(videoFile.size/1048576)+' MB). Browser choti videos (kuch minute) pe best chalta hai, bari videos crash kar sakti hain. Phir bhi try karein?')) return;
+  $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
+  try{
+    prog(2,'Loading video engine…'); await loadFFmpeg();
+    prog(6,'Loading AI model…'); await loadWhisper();
+    const fm = ffmpeg;
+    await fm.writeFile('in', new Uint8Array(await videoFile.arrayBuffer()));
+    prog(22,'Extracting audio…');
+    await fm.exec(['-i','in','-vn','-ac','1','-ar','16000','-f','wav','audio.wav']);
+    const wav = await fm.readFile('audio.wav');
+    prog(30,'Transcribing (AI)…');
+    const audioCtx = new AudioContext({sampleRate:16000});
+    const buf = await audioCtx.decodeAudioData(wav.buffer.slice(0));
+    const out = await transcriber(buf.getChannelData(0), { return_timestamps:true, chunk_length_s:30, stride_length_s:5 });
+    const chunks = out.chunks || [];
+
+    let minLen=10, maxLen=60;
+    const lv = $('len').value;
+    if(lv!=='auto'){ const p=lv.split('-').map(Number); minLen=p[0]; maxLen=p[1]; }
+    const count = parseInt($('count').value)||0;
+    CAPS = $('caps').value==='1';
+    SEGMENTS = pickHighlights(chunks, minLen, maxLen, count);
+    if(!SEGMENTS.length){ prog(100,'No speech found to clip.'); $('go').disabled=false; return; }
+
+    for(let i=0;i<SEGMENTS.length;i++){
+      prog(45 + (i/SEGMENTS.length)*50, `Making short ${i+1} of ${SEGMENTS.length}…`);
+      await renderShort(i);
+    }
+    prog(100,`Done — ${SEGMENTS.length} shorts ready!`);
+  }catch(err){ console.error(err); $('stage').textContent='Error: '+(err.message||err); }
+  $('go').disabled=false;
+};
+</script>
+</body>
+</html>

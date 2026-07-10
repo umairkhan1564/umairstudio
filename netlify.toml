@@ -1,0 +1,20 @@
+# UmairStudio — Netlify deploy config
+# The site is plain static files; Netlify serves them as-is.
+
+[build]
+  publish = "."
+
+# Cache the big ffmpeg/font files hard (they never change per version)
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# NOTE: to later enable MULTI-THREADED ffmpeg (much faster caption burning),
+# uncomment the two headers below AND self-host transformers.js (COEP blocks
+# cross-origin CDN loads). Do NOT enable yet — it breaks the jsdelivr loads.
+# [[headers]]
+#   for = "/*"
+#   [headers.values]
+#     Cross-Origin-Opener-Policy = "same-origin"
+#     Cross-Origin-Embedder-Policy = "require-corp"
