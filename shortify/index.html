@@ -242,25 +242,27 @@ const CAP_STYLES = {
   'Minimal':        'fontsize=36:fontcolor=white:borderw=2:bordercolor=black@0.7',
 };
 const CAP_KEYS = Object.keys(CAP_STYLES);
-function captionFilters(seg){
-  const style = CAP_STYLES[CAPS] || CAP_STYLES['Karaoke Yellow'];
+// seg.chunks are WORD-level {s,e,t}. Group 3 words per line using their REAL
+// start/end times so each caption shows exactly while those words are spoken.
+function captionFilters(seg, styleName){
+  const style = CAP_STYLES[styleName] || CAP_STYLES['Karaoke Yellow'];
   const parts=[];
-  for(const c of seg.chunks){
-    const words=(c.t||'').trim().split(/\s+/).filter(Boolean); if(!words.length) continue;
-    const cs=c.s, ce=Math.max(c.e, c.s+0.4), G=Math.ceil(words.length/3);
-    for(let g=0; g<G; g++){
-      const txt=escTxt(words.slice(g*3, g*3+3).join(' ')); if(!txt) continue;
-      const gs=Math.max(0,(cs+(g/G)*(ce-cs))-seg.start), ge=Math.max(gs+0.2,(cs+((g+1)/G)*(ce-cs))-seg.start);
-      parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
-    }
+  const words = seg.chunks || [];
+  for(let i=0; i<words.length; i+=3){
+    const grp = words.slice(i, i+3);
+    const txt = escTxt(grp.map(w=>w.t).join(' ')); if(!txt) continue;
+    const gs = Math.max(0, (grp[0].s - seg.start));
+    const ge = Math.max(gs+0.15, (grp[grp.length-1].e - seg.start));
+    parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
   }
   return parts;
 }
 
 async function renderShort(i, card){
   const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
+  const capStyle = s.caps || 'Karaoke Yellow';
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
-  if(CAPS!=='off') vf.push(...captionFilters(s));
+  if(capStyle!=='off') vf.push(...captionFilters(s, capStyle));
   const outName=`short_${i}_${Date.now()}.mp4`;
   await ffmpeg.exec(['-ss',String(s.start),'-i',INPUT,'-t',String(dur),'-vf',vf.join(','),
     '-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
@@ -281,7 +283,7 @@ async function renderShort(i, card){
         <div><label>End (sec)</label><input type="number" step="0.5" class="ee" value="${s.end.toFixed(1)}"></div>
       </div>
       <label style="margin-top:8px">Caption style</label>
-      <select class="ec">${[...CAP_KEYS,'off'].map(v=>`<option value="${v}"${v===CAPS?' selected':''}>${v==='off'?'No captions':v}</option>`).join('')}</select>
+      <select class="ec">${[...CAP_KEYS,'off'].map(v=>`<option value="${v}"${v===capStyle?' selected':''}>${v==='off'?'No captions':v}</option>`).join('')}</select>
       <button class="rr">🔁 Re-render this short</button>
       <div class="spin hidden">re-rendering… please wait</div>
     </div>`;
@@ -290,7 +292,7 @@ async function renderShort(i, card){
   card.querySelector('.rr').onclick=async()=>{
     const ns=parseFloat(card.querySelector('.es').value), ne=parseFloat(card.querySelector('.ee').value);
     if(!(ne-ns>=1)){ alert('End must be at least 1 second after start.'); return; }
-    SEGMENTS[i].start=ns; SEGMENTS[i].end=ne; CAPS=card.querySelector('.ec').value;
+    SEGMENTS[i].start=ns; SEGMENTS[i].end=ne; SEGMENTS[i].caps=card.querySelector('.ec').value;
     const spin=card.querySelector('.spin'); spin.classList.remove('hidden');
     try{ await renderShort(i, card); }catch(e){ alert('Re-render failed: '+(e.message||e)); spin.classList.add('hidden'); }
   };
@@ -330,8 +332,9 @@ $('go').onclick = async () => {
     const lv = $('len').value;
     if(lv!=='auto'){ const p=lv.split('-').map(Number); minLen=p[0]; maxLen=p[1]; }
     const count = parseInt($('count').value)||0;
-    CAPS = $('caps').value;
+    const capStyle = $('caps').value;
     SEGMENTS = pickHighlights(chunks, minLen, maxLen, count);
+    SEGMENTS.forEach(s => s.caps = capStyle);   // each clip keeps the chosen style
     if(!SEGMENTS.length){ prog(100,'No speech found to clip.'); $('go').disabled=false; return; }
 
     for(let i=0;i<SEGMENTS.length;i++){

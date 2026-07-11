@@ -13,7 +13,8 @@ self.onmessage = async (e) => {
       });
     }
     self.postMessage({ type: 'transcribing' });
-    const out = await transcriber(e.data.pcm, { return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
+    // WORD-level timestamps so captions line up with the voice exactly
+    const out = await transcriber(e.data.pcm, { return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5 });
     self.postMessage({ type: 'done', chunks: out.chunks || [] });
   } catch (err) {
     self.postMessage({ type: 'error', error: String((err && err.message) || err) });
