@@ -8,7 +8,7 @@ let transcriber = null;
 self.onmessage = async (e) => {
   try {
     if (!transcriber) {
-      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-base', {
         progress_callback: p => { if (p.status === 'progress') self.postMessage({ type: 'model', progress: p.progress || 0 }); }
       });
     }
