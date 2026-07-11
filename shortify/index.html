@@ -225,8 +225,10 @@ function pickHighlights(chunks, minLen, maxLen, count){
 
 // drawtext is font-file based (reliable in wasm — this core's libass has no
 // fontconfig, so subtitles/fontsdir renders blank). 3 words at a time, timed.
-function escTxt(t){ return (t||'').toUpperCase().replace(/[’'`]/g,'').replace(/[:\\%{}]/g,'')
-  .replace(/[^A-Z0-9 .,!?-]/g,'').replace(/\s+/g,' ').trim().slice(0,38); }
+// drawtext + filtergraph are very picky: commas, colons, quotes, brackets, = all
+// break the graph. Keep only safe chars so captions always render cleanly.
+function escTxt(t){ return (t||'').toUpperCase().replace(/[’'`]/g,'')
+  .replace(/[^A-Z0-9 .!?-]/g,'').replace(/\s+/g,' ').trim().slice(0,32); }
 // 9 caption styles (match the desktop app). Each is a full drawtext param string.
 const CAP_STYLES = {
   'Karaoke Yellow': 'fontsize=42:fontcolor=yellow:borderw=5:bordercolor=black',
@@ -264,11 +266,14 @@ async function renderShort(i, card){
     '-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
   const data=await ffmpeg.readFile(outName);
   const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
+  // name the download after the caption/title (Windows-safe)
+  const title=(s.text||'').replace(/[<>:"/\\|?*\n\r]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
+  const dlName=(title || ('short '+(i+1))) + '.mp4';
   card = card || document.createElement('div');
   card.className='clip'; card.id='clip'+i;
   card.innerHTML=`<video src="${url}" controls preload="metadata"></video>
     <div class="cap">${(s.text||'').slice(0,70) || 'Short '+(i+1)}</div>
-    <a href="${url}" download="short_${i+1}.mp4">⬇ Download</a>
+    <a href="${url}" download="${dlName.replace(/"/g,'')}">⬇ Download</a>
     <button class="ebtn">✏️ Edit trim</button>
     <div class="edit hidden">
       <div class="row2">
