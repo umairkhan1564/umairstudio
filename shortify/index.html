@@ -51,6 +51,14 @@
   .edit .spin{font-size:12px;color:var(--accent2);text-align:center;margin-top:6px}
   .note{background:rgba(124,92,255,.08);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--mut);margin-top:16px}
   .hidden{display:none}
+  #preview{width:100%;max-height:300px;border-radius:10px;background:#000;margin-top:14px}
+  .trim{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .trim .r{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .trim .fld label{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}
+  .trim input{width:90px;background:#0c0d1a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:14px}
+  .mini{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer}
+  .mini:hover{border-color:var(--accent)}
+  .trim .hint{font-size:12px;color:var(--mut);margin-top:8px}
 </style>
 <script type="importmap">
 { "imports": {
@@ -75,6 +83,21 @@
       <div class="t">Choose a video (or drag it here)</div>
       <div class="s" id="fname">MP4 · MOV · WebM — up to a few minutes works best</div>
       <input type="file" id="file" accept="video/*" class="hidden">
+    </div>
+
+    <div id="trimWrap" class="hidden">
+      <video id="preview" controls preload="metadata"></video>
+      <div class="trim">
+        <div class="r">
+          <div class="fld"><label>Trim start (sec)</label><input id="trimStart" type="number" min="0" step="1" value="0"></div>
+          <button class="mini" id="setStart" type="button">◁ Set to current</button>
+          <div class="fld"><label>Trim end (sec)</label><input id="trimEnd" type="number" min="0" step="1"></div>
+          <button class="mini" id="setEnd" type="button">Set to current ▷</button>
+          <button class="mini" id="trimFull" type="button">Full video</button>
+          <span class="hint" id="durInfo" style="margin:0 0 8px"></span>
+        </div>
+        <div class="hint">Long video? Play the preview, set a Start–End range, and Shortify will make shorts from just that part.</div>
+      </div>
     </div>
 
     <div class="opts">
@@ -126,6 +149,7 @@ const { FFmpeg } = FFmpegWASM;
 
 const $ = id => document.getElementById(id);
 let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Karaoke Yellow';
+let INPUT = 'in', videoDur = 0;
 
 const drop = $('drop'), fileInput = $('file');
 drop.onclick = () => fileInput.click();
@@ -133,7 +157,18 @@ drop.ondragover = e => { e.preventDefault(); drop.style.borderColor = 'var(--acc
 drop.ondragleave = () => drop.style.borderColor = '';
 drop.ondrop = e => { e.preventDefault(); drop.style.borderColor=''; if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); };
 fileInput.onchange = () => fileInput.files[0] && setFile(fileInput.files[0]);
-function setFile(f){ videoFile = f; $('fname').textContent = f.name + ' — ' + (f.size/1048576).toFixed(1) + ' MB'; }
+function fmtT(s){ s=Math.max(0,Math.round(s||0)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function setFile(f){
+  videoFile = f;
+  $('fname').textContent = f.name + ' — ' + (f.size/1048576).toFixed(1) + ' MB';
+  const pv = $('preview'); pv.src = URL.createObjectURL(f); $('trimWrap').classList.remove('hidden');
+  pv.onloadedmetadata = () => { videoDur = pv.duration || 0; $('trimEnd').value = Math.round(videoDur);
+    $('trimStart').value = 0; $('durInfo').textContent = 'Length: ' + fmtT(videoDur); };
+}
+// trim controls
+$('setStart').onclick = () => $('trimStart').value = Math.floor($('preview').currentTime);
+$('setEnd').onclick   = () => $('trimEnd').value = Math.ceil($('preview').currentTime);
+$('trimFull').onclick = () => { $('trimStart').value = 0; $('trimEnd').value = Math.round(videoDur); };
 
 function prog(pct, msg){ $('prog').style.display='block'; $('fill').style.width=Math.round(pct)+'%'; if(msg) $('stage').textContent=msg; }
 
@@ -225,7 +260,7 @@ async function renderShort(i, card){
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
   if(CAPS!=='off') vf.push(...captionFilters(s));
   const outName=`short_${i}_${Date.now()}.mp4`;
-  await ffmpeg.exec(['-ss',String(s.start),'-i','in','-t',String(dur),'-vf',vf.join(','),
+  await ffmpeg.exec(['-ss',String(s.start),'-i',INPUT,'-t',String(dur),'-vf',vf.join(','),
     '-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
   const data=await ffmpeg.readFile(outName);
   const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
@@ -265,8 +300,20 @@ $('go').onclick = async () => {
     prog(2,'Loading video engine…'); await loadFFmpeg();
     const fm = ffmpeg;
     await fm.writeFile('in', new Uint8Array(await videoFile.arrayBuffer()));
+    INPUT = 'in';
+    // Optional trim: cut the chosen Start–End range first, then work on just that
+    const t0 = Math.max(0, parseFloat($('trimStart').value)||0);
+    const t1 = parseFloat($('trimEnd').value);
+    if((t0 > 0.5 || (t1 && t1 < videoDur - 0.5)) && (!t1 || t1 > t0 + 1)){
+      prog(12, 'Trimming to selected range…');
+      const args = ['-ss', String(t0), '-i', 'in'];
+      if(t1 && t1 > t0) args.push('-t', String(t1 - t0));
+      args.push('-c:v','libx264','-preset','ultrafast','-crf','26','-c:a','aac','-y','trimmed.mp4');
+      await fm.exec(args);
+      INPUT = 'trimmed.mp4';
+    }
     prog(22,'Extracting audio…');
-    await fm.exec(['-i','in','-vn','-ac','1','-ar','16000','-f','wav','audio.wav']);
+    await fm.exec(['-i',INPUT,'-vn','-ac','1','-ar','16000','-f','wav','audio.wav']);
     const wav = await fm.readFile('audio.wav');
     prog(30,'Transcribing (AI)…');
     const audioCtx = new AudioContext({sampleRate:16000});
