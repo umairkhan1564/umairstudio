@@ -1,7 +1,7 @@
 {
-    "version":  "1.7",
+    "version":  "1.8",
     "url":  "https://umairstudio.co/uploader/BulkUploader_Setup.exe",
-    "sha256":  "c967b566df98d37071852bb292fdc6fdbe0d858d23bc4ab6fda6d324a369a5b0",
+    "sha256":  "4de625bda89fe9075c3ca6dbd11d41d965085975cdf96fc9eb5a44cc35878f44",
     "installer":  true,
-    "notes":  "Naya: har page par Google Drive folder source (folder + Drive dono); bulk multi-account page creation (auto category); Add account ke waqt browser khula rehta hai (VPN/extra kaam), extensions bhi install ho sakti hain; failed uploads ab History me RED me aati hain. Ab sab kuch umairstudio.co par."
+    "notes":  "Naya v1.8: Light/Dark theme switch + naya midnight-blue look (cards par icons, top Reels/Videos/Image neeche Story/Text). Google Drive se post hone ke baad file delete. Account bina pages ke bhi add. Save-password popup band. Failed uploads History me RED."
 }
