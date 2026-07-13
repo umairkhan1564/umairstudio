@@ -1,0 +1,7 @@
+{
+    "version":  "1.7",
+    "url":  "https://umairstudio.co/uploader/BulkUploader_Setup.exe",
+    "sha256":  "c967b566df98d37071852bb292fdc6fdbe0d858d23bc4ab6fda6d324a369a5b0",
+    "installer":  true,
+    "notes":  "Naya: har page par Google Drive folder source (folder + Drive dono); bulk multi-account page creation (auto category); Add account ke waqt browser khula rehta hai (VPN/extra kaam), extensions bhi install ho sakti hain; failed uploads ab History me RED me aati hain. Ab sab kuch umairstudio.co par."
+}

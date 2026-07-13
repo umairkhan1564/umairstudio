@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Uploader — How to Use (Tutorial)</title>
+<style>
+  :root{
+    --bg:#0c0c14; --card:#1c1c28; --card2:#141420; --side:#0f0f17;
+    --accent:#a855f7; --accent2:#7c3aed; --green:#22c55e; --red:#ef4444;
+    --text:#f4f4f8; --muted:#9a9ab0; --border:#2a2a3c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+  body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;
+    align-items:center;justify-content:center;padding:20px;
+    background-image:radial-gradient(600px 400px at 15% -5%, rgba(168,85,247,.16), transparent),
+                     radial-gradient(500px 400px at 100% 10%, rgba(124,58,237,.12), transparent);}
+
+  .stage{width:100%;max-width:900px}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .blogo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center}
+  .brand .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stepcount{margin-left:auto;color:var(--muted);font-size:14px;font-weight:600}
+
+  .videowrap{margin-bottom:22px}
+  .vhead{margin-bottom:12px}
+  .videowrap video{width:100%;display:block;border-radius:20px;border:1px solid var(--border);
+    background:#000;box-shadow:0 20px 60px rgba(0,0,0,.5);aspect-ratio:16/9}
+  .vsub{text-align:center;color:var(--muted);font-size:13.5px;margin-top:12px}
+
+  .frame{position:relative;background:var(--card);border:1px solid var(--border);border-radius:20px;
+    overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .progress{height:4px;background:var(--card2)}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#c084fc);transition:width .25s linear}
+
+  .scene{display:none;padding:34px 40px 40px;min-height:430px;animation:fade .5s ease}
+  .scene.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .badge{display:inline-block;background:rgba(168,85,247,.15);color:var(--accent);font-weight:700;
+    padding:5px 14px;border-radius:20px;font-size:13px;letter-spacing:.5px;margin-bottom:14px}
+  .scene h2{font-size:27px;font-weight:800;margin-bottom:8px;line-height:1.2}
+  .scene .cap{color:var(--muted);font-size:16px;max-width:560px;line-height:1.5}
+
+  /* mock app pieces */
+  .mock{margin-top:24px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative}
+  .row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-size:14px;color:var(--text)}
+  .row+.row{margin-top:6px}
+  .pill{padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+  .p-green{background:var(--green);color:#06210f}
+  .p-accent{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+  .p-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .d-green{background:var(--green)} .d-red{background:var(--red)} .d-amber{background:#f59e0b}
+  .field{background:#0e0e18;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--muted);font-size:13px}
+  .chk{width:18px;height:18px;border-radius:5px;border:2px solid var(--accent);display:inline-flex;align-items:center;justify-content:center;color:var(--accent);font-size:12px;font-weight:900}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cursor{position:absolute;width:22px;height:22px;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));
+    transition:all .7s cubic-bezier(.4,0,.2,1);opacity:0}
+  .pulse{animation:pulse 1.3s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.5)}50%{box-shadow:0 0 0 10px rgba(168,85,247,0)}}
+  .type-caret::after{content:'|';animation:blink 1s steps(1) infinite;color:var(--accent)}
+  @keyframes blink{50%{opacity:0}}
+
+  .logbox{background:#0a0a12;border:1px solid var(--border);border-radius:9px;padding:12px;font-family:Consolas,monospace;font-size:12.5px;color:#a7f3c0;line-height:1.7;height:120px;overflow:hidden}
+
+  /* controls */
+  .controls{display:flex;align-items:center;gap:10px;margin-top:16px}
+  .btn{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:10px;
+    padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff}
+  .dots{display:flex;gap:7px;margin-left:auto}
+  .nav{width:9px;height:9px;border-radius:50%;background:var(--border);cursor:pointer;transition:.2s}
+  .nav.on{background:var(--accent);transform:scale(1.3)}
+  .hint{text-align:center;color:var(--muted);font-size:12px;margin-top:12px}
+
+  .endcard{text-align:center;padding-top:20px}
+  .endcard .big{font-size:30px;font-weight:800;margin:10px 0}
+  .endcard .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .wa{display:inline-block;background:var(--green);color:#06210f;font-weight:800;padding:12px 24px;border-radius:30px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="topbar">
+    <div class="brand">
+      <span class="blogo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+      Bulk Uploader <span class="g">By Umair</span>
+    </div>
+    <span class="stepcount" id="stepcount">Step 1 / 8</span>
+  </div>
+
+  <!-- real video tutorial -->
+  <div class="videowrap">
+    <div class="vhead"><span class="badge">🎬 PURA VIDEO TUTORIAL</span></div>
+    <video id="tut" controls preload="metadata" playsinline poster="demo/dashboard.png">
+      <source src="bulk-uploader-tutorial.mp4" type="video/mp4">
+      Aapka browser video support nahi karta —
+      <a href="bulk-uploader-tutorial.mp4" style="color:var(--accent)">yahan download karein</a>.
+    </video>
+    <p class="vsub">Poora setup step-by-step is video mein. Neeche animated guide bhi dekh sakte hain.</p>
+  </div>
+
+  <div class="frame">
+    <div class="progress"><div class="bar" id="bar"></div></div>
+
+    <!-- 1 -->
+    <div class="scene active">
+      <span class="badge">SHURU KAREIN</span>
+      <h2>Ek click mein saari Facebook Pages par post</h2>
+      <p class="cap">Reels, Videos, Story, Photos aur Text — har page, har account par automatically. Aaiye dekhte hain kaise, bilkul shuru se.</p>
+      <div class="mock">
+        <div class="row" style="background:#161622"><span class="chk">✓</span> Account 1 &nbsp;<span class="dot d-green"></span> <span style="color:var(--muted)">OK</span></div>
+        <div class="row"><span class="chk">✓</span> My Page — Sports</div>
+        <div class="row"><span class="chk">✓</span> My Page — Food</div>
+        <div class="row"><span class="chk">✓</span> My Page — News</div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="scene">
+      <span class="badge">STEP 1 — DOWNLOAD</span>
+      <h2>Website se download & install</h2>
+      <p class="cap">Website kholein, download button dabayein, aur setup chalayein. Zaroori cheezein (Chrome waghera) khud install ho jati hain — Next, Next, Install.</p>
+      <div class="mock" style="text-align:center;padding:34px">
+        <div style="color:var(--muted);font-size:14px;margin-bottom:18px">umairkhan1564.github.io/bulkuploader</div>
+        <span class="pill p-green pulse" id="dlbtn">⬇ Download for Windows</span>
+        <div style="margin-top:22px;color:var(--muted);font-size:13px" id="dlmsg">BulkUploader_Setup.exe →</div>
+      </div>
+      <div class="cursor" id="c2">👆</div>
+    </div>
+
+    <!-- 3 -->
+    <div class="scene">
+      <span class="badge">STEP 2 — LICENSE</span>
+      <h2>Machine ID bhejein, key activate karein</h2>
+      <p class="cap">'My ID' se apni Machine ID copy karke WhatsApp par bhejein. Hum key bhejenge — 'Renew' window mein paste karke Activate karein. Naye PC par 3 din free trial bhi milta hai.</p>
+      <div class="mock">
+        <div class="row" style="justify-content:space-between;background:#161622">
+          <span>Machine ID:&nbsp; <b style="font-family:Consolas">DF11-5D37-3220</b></span>
+          <span class="pill p-ghost">Copy</span>
+        </div>
+        <div style="margin-top:14px" class="field">Paste license key here...&nbsp;<span class="type-caret"></span></div>
+        <div style="margin-top:12px"><span class="pill p-accent pulse">Activate key</span></div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="scene">
+      <span class="badge">STEP 3 — ADD ACCOUNT</span>
+      <h2>Login karein — Pages khud aa jati hain</h2>
+      <p class="cap">'Add account' dabayein, Facebook mein sirf ek dafa login karein. App us account ki <b>saari Pages automatically</b> le aata hai — koi token, koi manual setup nahi.</p>
+      <div class="mock">
+        <div style="margin-bottom:12px"><span class="pill p-green">➕ Add account (login)</span></div>
+        <div class="row" id="pg1" style="opacity:0"><span class="dot d-green"></span> My Page — Sports</div>
+        <div class="row" id="pg2" style="opacity:0"><span class="dot d-green"></span> My Page — Food</div>
+        <div class="row" id="pg3" style="opacity:0"><span class="dot d-green"></span> My Page — News</div>
+        <div class="row" id="pg4" style="opacity:0;color:var(--muted)"><span class="dot d-amber"></span> My Page — Vlogs (fetching...)</div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="scene">
+      <span class="badge">STEP 4 — SET UP POSTS</span>
+      <h2>Page chunein, post type set karein</h2>
+      <p class="cap">Kisi page par click karein. 5 post types milenge. Folder chunein, rozana kitne post honge, caption/hashtags — sab set karein.</p>
+      <div class="mock grid2">
+        <div>
+          <div class="row" style="background:#161622"><span class="chk">✓</span> <b>Reels</b></div>
+          <div class="field" style="margin-top:8px">📁 D:\Content\Reels</div>
+          <div class="field" style="margin-top:6px">Per day: 3</div>
+          <div class="field" style="margin-top:6px">Caption + #hashtags</div>
+        </div>
+        <div>
+          <div class="row"><span class="chk">✓</span> Videos</div>
+          <div class="row"><span class="chk">✓</span> Story</div>
+          <div class="row"><span class="chk">✓</span> Image post</div>
+          <div class="row"><span class="chk">✓</span> Text post</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="scene">
+      <span class="badge">STEP 5 — PLAY</span>
+      <h2>Now ya Schedule → Play dabayein</h2>
+      <p class="cap">Abhi post karein ya Facebook par schedule karein. Phir Play dabayein — app har page par ek-ek karke sab post kar deta hai.</p>
+      <div class="mock">
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+          <span class="pill p-ghost">◉ Now</span><span class="pill p-ghost">Schedule</span>
+          <span class="pill p-green pulse" style="margin-left:auto">▶ Play</span>
+        </div>
+        <div class="logbox" id="log"></div>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="scene">
+      <span class="badge">AUR BHI BAHUT KUCH</span>
+      <h2>Powerful features</h2>
+      <div class="mock grid2" style="gap:10px 18px;margin-top:20px">
+        <div class="row"><span class="dot d-green"></span> Account health — OK / Block / Verify</div>
+        <div class="row">🌐 IP change (mobile data / 4G)</div>
+        <div class="row">💤 Active mode — IDs warm rakhein</div>
+        <div class="row">⚡ Parallel browsers</div>
+        <div class="row">📊 Analytics — followers, reach, views</div>
+        <div class="row">🕘 History + CSV export</div>
+        <div class="row">🛡️ Safe pacing + daily limits</div>
+        <div class="row">🔄 Auto-updates</div>
+      </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="scene">
+      <div class="endcard">
+        <span class="blogo" style="width:60px;height:60px;border-radius:16px;margin:0 auto;display:flex"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+        <div class="big">Bulk Uploader <span class="g">By Umair</span></div>
+        <p class="cap" style="margin:0 auto">3 din free trial abhi shuru karein. Download website se, madad ke liye WhatsApp karein.</p>
+        <div style="margin-top:10px;color:var(--muted);font-size:14px">umairkhan1564.github.io/bulkuploader</div>
+        <div class="wa">💬 WhatsApp: +92 308 4973164</div>
+      </div>
+    </div>
+
+  </div><!--/frame-->
+
+  <div class="controls">
+    <button class="btn" id="prev">‹ Peeche</button>
+    <button class="btn btn-primary" id="play">⏸ Pause</button>
+    <button class="btn" id="next">Aage ›</button>
+    <div class="dots" id="dots"></div>
+  </div>
+  <p class="hint">Auto-play chal raha hai · Record karne ke liye OBS use karein · F11 = fullscreen</p>
+</div>
+
+<script>
+(function(){
+  var scenes = document.querySelectorAll('.scene');
+  var bar = document.getElementById('bar');
+  var stepcount = document.getElementById('stepcount');
+  var dotsWrap = document.getElementById('dots');
+  var i = 0, playing = true, timer = null, prog = null;
+  var DUR = 6500; // ms per scene
+
+  // build nav dots
+  scenes.forEach(function(_,n){
+    var d = document.createElement('span'); d.className='nav'+(n===0?' on':'');
+    d.onclick=function(){go(n);}; dotsWrap.appendChild(d);
+  });
+  var navs = dotsWrap.querySelectorAll('.nav');
+
+  function show(n){
+    scenes[i].classList.remove('active');
+    navs[i].classList.remove('on');
+    i = (n+scenes.length)%scenes.length;
+    scenes[i].classList.add('active');
+    navs[i].classList.add('on');
+    stepcount.textContent = (i===0?'Intro':(i===scenes.length-1?'Finish':'Step '+i+' / 6'));
+    runSceneAnim(i);
+    resetProgress();
+  }
+  function go(n){ show(n); if(playing) schedule(); }
+  function nextScene(){ show(i+1); }
+
+  function schedule(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){ if(playing) nextScene(); if(playing) schedule(); }, DUR);
+  }
+  function resetProgress(){
+    clearInterval(prog); var t=0;
+    bar.style.transition='none'; bar.style.width='0%';
+    setTimeout(function(){ bar.style.transition='width .1s linear'; },30);
+    prog = setInterval(function(){
+      if(!playing) return;
+      t += 100; bar.style.width = Math.min(100, (t/DUR)*100)+'%';
+      if(t>=DUR) clearInterval(prog);
+    },100);
+  }
+
+  // per-scene little animations
+  function runSceneAnim(n){
+    if(n===2){ // download cursor
+      var c=document.getElementById('c2'), b=document.getElementById('dlbtn');
+      if(c&&b){ c.style.opacity=0;
+        setTimeout(function(){ var r=b.getBoundingClientRect(),f=b.closest('.frame').getBoundingClientRect();
+          c.style.opacity=1; c.style.left=(r.left-f.left+r.width/2)+'px'; c.style.top=(r.top-f.top+r.height/2)+'px'; },400);
+      }
+    }
+    if(n===4){ // pages fade in one by one
+      ['pg1','pg2','pg3','pg4'].forEach(function(id,k){
+        var el=document.getElementById(id); if(el){el.style.opacity=0;
+          setTimeout(function(){el.style.transition='opacity .5s';el.style.opacity=1;},600+k*700);}
+      });
+    }
+    if(n===5){ // log typing
+      var log=document.getElementById('log'); if(!log) return; log.innerHTML='';
+      var lines=['▶ Posting to My Page — Sports...','  ✓ Reel 1 uploaded','  ✓ Reel 2 uploaded',
+        '▶ Posting to My Page — Food...','  ✓ Video scheduled','✓ Done — 5 posts published'];
+      lines.forEach(function(ln,k){ setTimeout(function(){ if(i===5){log.innerHTML+=ln+'<br>';} },500+k*800); });
+    }
+  }
+
+  document.getElementById('next').onclick=function(){go(i+1);};
+  document.getElementById('prev').onclick=function(){go(i-1);};
+  document.getElementById('play').onclick=function(){
+    playing=!playing; this.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ schedule(); resetProgress(); } else { clearTimeout(timer); clearInterval(prog); }
+  };
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight')go(i+1); if(e.key==='ArrowLeft')go(i-1);
+  });
+
+  // start
+  runSceneAnim(0); resetProgress(); schedule();
+
+  // pause the animated slideshow while the real video is playing
+  var tut=document.getElementById('tut'), pbtn=document.getElementById('play');
+  if(tut&&pbtn){ tut.addEventListener('play',function(){ if(playing) pbtn.click(); }); }
+})();
+</script>
+</body>
+</html>

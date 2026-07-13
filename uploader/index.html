@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Uploader By Umair — Post to ALL your Facebook Pages</title>
+<meta name="description" content="Windows app that bulk-posts Reels, Videos, Stories, Photos and Text to all your Facebook Pages automatically. 3-day free trial.">
+<style>
+  :root{
+    --bg:#0c0c14; --side:#0f0f17; --card:#1c1c28; --card2:#141420;
+    --accent:#a855f7; --accent2:#7c3aed; --green:#22c55e; --text:#f4f4f8;
+    --muted:#9a9ab0; --border:#2a2a3c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.55;
+    background-image:radial-gradient(600px 400px at 15% -5%, rgba(168,85,247,.18), transparent),
+                     radial-gradient(500px 400px at 100% 10%, rgba(124,58,237,.12), transparent);}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+  .btn{display:inline-block;padding:15px 30px;border-radius:40px;font-weight:700;font-size:17px;
+    transition:transform .12s ease, box-shadow .12s ease;cursor:pointer;border:none}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    box-shadow:0 10px 30px rgba(168,85,247,.4)}
+  .btn-green{background:var(--green);color:#06210f;box-shadow:0 10px 30px rgba(34,197,94,.35)}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+  /* HERO */
+  header{padding:70px 0 40px;text-align:center}
+  .badge{display:inline-block;background:var(--green);color:#06210f;font-weight:800;
+    padding:7px 18px;border-radius:30px;font-size:13px;letter-spacing:.5px;margin-bottom:26px}
+  .logo{width:92px;height:92px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 12px 34px rgba(124,58,237,.5)}
+  h1{font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-1px}
+  h1 .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:19px;margin:16px auto 8px;max-width:620px}
+  .kinds{color:var(--accent);font-weight:700;font-size:17px;margin:10px 0 30px;letter-spacing:.5px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .trust{color:var(--muted);font-size:13px;margin-top:16px}
+
+  /* SECTIONS */
+  section{padding:46px 0}
+  h2{font-size:30px;font-weight:800;text-align:center;margin-bottom:8px}
+  .lead{color:var(--muted);text-align:center;max-width:640px;margin:0 auto 34px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .feat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+  .feat h3{font-size:17px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .feat p{color:var(--muted);font-size:14px}
+  .tick{color:var(--green);font-weight:800}
+
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .step{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:22px 22px 22px 66px;position:relative}
+  .step:before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:20px;
+    width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:16px;margin-bottom:4px}
+  .step p{color:var(--muted);font-size:14px}
+
+  /* PRICE */
+  .price-card{max-width:420px;margin:0 auto;background:var(--card);border:1px solid var(--accent);
+    border-radius:20px;padding:32px;text-align:center;box-shadow:0 14px 40px rgba(168,85,247,.18)}
+  .price{font-size:42px;font-weight:800;margin:6px 0}
+  .price small{font-size:16px;color:var(--muted);font-weight:600}
+  .price-card ul{list-style:none;text-align:left;margin:20px 0;display:inline-block}
+  .price-card li{padding:5px 0;color:var(--muted)}
+  .price-card li b{color:var(--text)}
+  .bank{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:16px;font-size:14px}
+
+  .req{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  .req span{background:var(--card);border:1px solid var(--border);border-radius:30px;padding:9px 18px;font-size:14px;color:var(--muted)}
+
+  /* DOWNLOAD BAND */
+  .band{background:linear-gradient(135deg,rgba(168,85,247,.14),rgba(124,58,237,.08));
+    border:1px solid var(--border);border-radius:24px;text-align:center;padding:44px 24px;margin:30px 0}
+  .band h2{margin-bottom:14px}
+
+  footer{text-align:center;color:var(--muted);padding:40px 0 60px;font-size:14px;border-top:1px solid var(--border);margin-top:30px}
+  footer a{color:var(--accent);font-weight:700}
+
+  @media(max-width:720px){
+    h1{font-size:34px}.grid,.steps{grid-template-columns:1fr}.sub{font-size:17px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="badge">● NOW LIVE — 3-DAY FREE TRIAL</span>
+    <div class="logo">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5M5 12l7-7 7 7"/><path d="M5 21h14"/>
+      </svg>
+    </div>
+    <h1>Bulk Uploader <span class="g">By Umair</span></h1>
+    <p class="sub">Post to <b>ALL</b> your Facebook Pages — automatically. One click, every page, full native reach.</p>
+    <p class="kinds">Reels · Videos · Story · Photos · Text</p>
+    <div class="cta-row">
+      <a class="btn btn-green" href="#download">⬇ Download for Windows</a>
+      <a class="btn btn-ghost" href="tutorial.html">🎬 Watch tutorial</a>
+      <a class="btn btn-ghost" href="https://wa.me/923084973164" target="_blank">💬 WhatsApp us</a>
+    </div>
+    <p class="trust">Windows 10/11 · No API tokens · Auto-installs everything it needs</p>
+  </div>
+</header>
+
+<section class="wrap">
+  <h2>Everything you need to run many pages</h2>
+  <p class="lead">Built for content teams and page managers. Drop your files in a folder, hit Play, and it posts to every page on your schedule.</p>
+  <div class="grid">
+    <div class="feat"><h3><span class="tick">✓</span> 5 post types</h3><p>Reels, Videos, Stories, Image posts and Text posts — all in one place.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> Multi-account & multi-page</h3><p>Log in once — the app auto-fetches every Page of that account. No tokens.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> Full native reach</h3><p>Posts through your own browser, not the API — so your content isn't reach-limited.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> Custom scheduling</h3><p>Post now or schedule on Facebook, with automatic spacing between posts.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> IP change (mobile data / 4G)</h3><p>Rotate your IP per account on mobile data to keep accounts fresh.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> Account health check</h3><p>Live status badge per account: 🟢 OK · Disabled · Block · Verify.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> Analytics + post history</h3><p>Followers, reach and views per page, plus a date-wise log exportable to CSV.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> Safe & automatic</h3><p>Human-like delays, daily caps, auto-tuning for slow/fast PCs, and auto-updates.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>How it works</h2>
+  <p class="lead">Four simple steps — you're posting to every page in minutes.</p>
+  <div class="steps">
+    <div class="step"><h3>Add your accounts</h3><p>Click "Add account (login)" and log into Facebook once. Pages load automatically.</p></div>
+    <div class="step"><h3>Set up each page</h3><p>Pick a folder for Reels/Videos/Story/Photos, or a text file for Text posts. Set per-day count, gap and caption.</p></div>
+    <div class="step"><h3>Now or Schedule</h3><p>Post immediately or schedule on Facebook at your chosen time.</p></div>
+    <div class="step"><h3>Press Play</h3><p>A hidden browser posts everything, page by page. Done files move aside so nothing posts twice.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Simple pricing</h2>
+  <div class="price-card">
+    <div class="badge" style="margin-bottom:0">RENTAL</div>
+    <div class="price">PKR 2,500 <small>/ $10 per month</small></div>
+    <ul>
+      <li><span class="tick">✓</span> <b>3-day free trial</b> on every new PC</li>
+      <li><span class="tick">✓</span> Any number of months</li>
+      <li><span class="tick">✓</span> One license per PC</li>
+      <li><span class="tick">✓</span> Free updates &amp; support</li>
+    </ul>
+    <div class="bank"><b>Pay via JazzCash</b><br>Muhammad Umair Khan — 03084973164</div>
+    <a class="btn btn-primary" style="margin-top:18px" href="https://wa.me/923084973164" target="_blank">Get your license →</a>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="band" id="download">
+    <h2>Download &amp; get started</h2>
+    <p class="lead" style="margin-bottom:22px">Download the installer, run it — it auto-installs everything the app needs (Visual C++ &amp; Chrome). Then read the built-in User Guide.</p>
+    <a class="btn btn-green" id="dlbtn" href="BulkUploader_Setup.exe" download>⬇ Download Installer (Windows)</a>
+    <div class="req">
+      <span>🪟 Windows 10 / 11 (64-bit)</span>
+      <span>🌐 Internet connection</span>
+      <span>🔒 Runs without admin</span>
+    </div>
+  </div>
+</div>
+
+<section class="wrap">
+  <h2>How to install</h2>
+  <div class="steps">
+    <div class="step"><h3>Download</h3><p>Click the download button above and save <b>BulkUploader_Setup.exe</b>.</p></div>
+    <div class="step"><h3>Run the installer</h3><p>Double-click it. If Windows shows a SmartScreen notice, click "More info → Run anyway".</p></div>
+    <div class="step"><h3>Auto-setup</h3><p>The installer silently installs the required components (and Chrome if missing). Just click Next.</p></div>
+    <div class="step"><h3>Open &amp; start trial</h3><p>Launch the app — your 3-day free trial starts automatically. Add an account and go.</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>Bulk Uploader By Umair</b> — Windows desktop app for Facebook Page managers.</p>
+    <p style="margin-top:8px">Support &amp; licenses: <a href="https://wa.me/923084973164" target="_blank">WhatsApp +92 308 4973164</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
