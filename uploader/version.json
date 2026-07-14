@@ -1,7 +1,7 @@
 {
-    "version":  "1.9",
+    "version":  "1.10",
     "url":  "https://umairstudio.co/uploader/BulkUploader_Setup.exe",
-    "sha256":  "b1653a888c87683e23d783b2303c70002ccdc9df6c86ee7f2395be0cdd22ee88",
+    "sha256":  "1ca865e7a892531207f2ab2bba613d8bb413d57bd0dd0a3f48d507170e4b2bfc",
     "installer":  true,
-    "notes":  "Naya v1.9: bilkul naya modern UI. Page Analytics me MONETIZATION add hui - har page ka Earnings (28 din + is month), Monetization status (Restricted RED / Eligible green), Available to set up tools, aur Approved tools. Analytics/History windows ab minimize/maximize hoti hain. Renew ab WhatsApp Web + bank details ke sath."
+    "notes":  "v1.10 zaroori fix: Play/posting ab theek chalti hai (v1.9 me crash ho rahi thi). Page Settings me \u0027Save\u0027 button add. Google Drive folder khatam hone par \u0027saari videos post ho gayi - nayi add karein\u0027 message log me aata hai."
 }
