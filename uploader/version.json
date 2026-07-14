@@ -1,7 +1,7 @@
 {
-    "version":  "1.10",
+    "version":  "1.11",
     "url":  "https://umairstudio.co/uploader/BulkUploader_Setup.exe",
-    "sha256":  "1ca865e7a892531207f2ab2bba613d8bb413d57bd0dd0a3f48d507170e4b2bfc",
+    "sha256":  "4a06c091870a5c633cf2fccde56f9c2003cd9e813f40e0df4015c711353307d8",
     "installer":  true,
-    "notes":  "v1.10 zaroori fix: Play/posting ab theek chalti hai (v1.9 me crash ho rahi thi). Page Settings me \u0027Save\u0027 button add. Google Drive folder khatam hone par \u0027saari videos post ho gayi - nayi add karein\u0027 message log me aata hai."
+    "notes":  "v1.11 zaroori update-fix: auto-update ab theek install hoti hai (v1.9/v1.10 me app khud band nahi hoti thi to update loop me atak jati thi). Installer ab running app ko force-close karke sahi update kar deta hai."
 }
