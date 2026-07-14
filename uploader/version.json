@@ -1,7 +1,7 @@
 {
-    "version":  "1.8",
+    "version":  "1.9",
     "url":  "https://umairstudio.co/uploader/BulkUploader_Setup.exe",
-    "sha256":  "4de625bda89fe9075c3ca6dbd11d41d965085975cdf96fc9eb5a44cc35878f44",
+    "sha256":  "b1653a888c87683e23d783b2303c70002ccdc9df6c86ee7f2395be0cdd22ee88",
     "installer":  true,
-    "notes":  "Naya v1.8: Light/Dark theme switch + naya midnight-blue look (cards par icons, top Reels/Videos/Image neeche Story/Text). Google Drive se post hone ke baad file delete. Account bina pages ke bhi add. Save-password popup band. Failed uploads History me RED."
+    "notes":  "Naya v1.9: bilkul naya modern UI. Page Analytics me MONETIZATION add hui - har page ka Earnings (28 din + is month), Monetization status (Restricted RED / Eligible green), Available to set up tools, aur Approved tools. Analytics/History windows ab minimize/maximize hoti hain. Renew ab WhatsApp Web + bank details ke sath."
 }
