@@ -67,6 +67,18 @@
   .mini{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer}
   .mini:hover{border-color:var(--accent)}
   .trim .hint{font-size:12px;color:var(--mut);margin-top:8px}
+  .tl{position:relative;height:56px;margin:12px 0 0;user-select:none;touch-action:none}
+  .tl-track{position:absolute;inset:0;background:#0c0d1a;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex}
+  .tl-track canvas{height:100%;flex:1;display:block;min-width:0}
+  .tl-cur{position:absolute;top:-4px;bottom:-4px;width:2px;background:#fff;pointer-events:none;opacity:.9;border-radius:2px}
+  .tl-sel{position:absolute;top:0;bottom:0;border:2px solid var(--accent);border-radius:8px;background:rgba(124,92,255,.22);cursor:grab;box-shadow:0 0 12px rgba(124,92,255,.35)}
+  .tl-sel:active{cursor:grabbing}
+  .tl-h{position:absolute;top:-2px;bottom:-2px;width:14px;background:var(--accent);cursor:ew-resize;display:grid;place-items:center;z-index:2}
+  .tl-h::after{content:'';width:3px;height:18px;border-radius:2px;background:#fff}
+  .tl-hl{left:-8px;border-radius:8px 0 0 8px}
+  .tl-hr{right:-8px;border-radius:0 8px 8px 0}
+  .tl-times{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-top:6px}
+  .tl-times b{color:var(--accent2);font-weight:600}
   .mo{position:fixed;inset:0;background:rgba(5,6,12,.72);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:50}
   .mo.hidden{display:none}
   .mob{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:380px;width:calc(100% - 40px);text-align:center;position:relative}
@@ -107,6 +119,15 @@
 
     <div id="trimWrap" class="hidden">
       <video id="preview" controls preload="metadata"></video>
+      <div class="tl" id="tl">
+        <div class="tl-track" id="tlTrack"></div>
+        <div class="tl-cur" id="tlCur" style="left:0"></div>
+        <div class="tl-sel" id="tlSel">
+          <div class="tl-h tl-hl" id="tlHL"></div>
+          <div class="tl-h tl-hr" id="tlHR"></div>
+        </div>
+      </div>
+      <div class="tl-times"><span id="tlA">0:00</span><b id="tlMid"></b><span id="tlB">0:00</span></div>
       <div class="trim">
         <div class="r">
           <div class="fld"><label>Trim start (sec)</label><input id="trimStart" type="number" min="0" step="1" value="0"></div>
@@ -252,12 +273,70 @@ function setFile(f){
   $('fname').textContent = f.name + ' — ' + (f.size/1048576).toFixed(1) + ' MB';
   const pv = $('preview'); pv.src = URL.createObjectURL(f); $('trimWrap').classList.remove('hidden');
   pv.onloadedmetadata = () => { videoDur = pv.duration || 0; $('trimEnd').value = Math.round(videoDur);
-    $('trimStart').value = 0; $('durInfo').textContent = 'Length: ' + fmtT(videoDur); };
+    $('trimStart').value = 0; $('durInfo').textContent = 'Length: ' + fmtT(videoDur);
+    updateTL(); buildStrip(); };
 }
 // trim controls
-$('setStart').onclick = () => $('trimStart').value = Math.floor($('preview').currentTime);
-$('setEnd').onclick   = () => $('trimEnd').value = Math.ceil($('preview').currentTime);
-$('trimFull').onclick = () => { $('trimStart').value = 0; $('trimEnd').value = Math.round(videoDur); };
+$('setStart').onclick = () => { $('trimStart').value = Math.floor($('preview').currentTime); updateTL(); };
+$('setEnd').onclick   = () => { $('trimEnd').value = Math.ceil($('preview').currentTime); updateTL(); };
+$('trimFull').onclick = () => { $('trimStart').value = 0; $('trimEnd').value = Math.round(videoDur); updateTL(); };
+$('trimStart').oninput = updateTL; $('trimEnd').oninput = updateTL;
+
+// ---------- CapCut-style drag timeline ----------
+const tlEl=$('tl'), tlSel=$('tlSel'), tlCur=$('tlCur');
+let tlDrag=null; // {mode:'l'|'r'|'move', x, s0, e0}
+const trimVals = () => ({ s: Math.max(0, parseFloat($('trimStart').value)||0),
+                          e: Math.min(videoDur, parseFloat($('trimEnd').value)||videoDur) });
+function setTrim(s, e){ $('trimStart').value = Math.round(s*10)/10; $('trimEnd').value = Math.round(e*10)/10; updateTL(); }
+function updateTL(){
+  if(!videoDur) return;
+  const {s,e} = trimVals();
+  tlSel.style.left  = (s/videoDur*100) + '%';
+  tlSel.style.width = (Math.max(0, e-s)/videoDur*100) + '%';
+  $('tlA').textContent = fmtT(s); $('tlB').textContent = fmtT(e);
+  $('tlMid').textContent = 'Selected: ' + fmtT(e-s);
+}
+function startDrag(mode){ return ev => { ev.preventDefault(); ev.stopPropagation();
+  const {s,e} = trimVals(); tlDrag = {mode, x: ev.clientX, s0: s, e0: e}; }; }
+$('tlHL').onpointerdown = startDrag('l');
+$('tlHR').onpointerdown = startDrag('r');
+tlSel.onpointerdown = startDrag('move');
+tlEl.onpointerdown = ev => { // tap the empty track: pull the nearest edge there
+  if(!videoDur) return;
+  const r = tlEl.getBoundingClientRect();
+  const t = Math.min(videoDur, Math.max(0, (ev.clientX - r.left)/r.width*videoDur));
+  const {s,e} = trimVals();
+  if(Math.abs(t-s) <= Math.abs(t-e)) setTrim(Math.min(t, e-1), e); else setTrim(s, Math.max(t, s+1));
+  $('preview').currentTime = t;
+};
+window.addEventListener('pointermove', ev => {
+  if(!tlDrag || !videoDur) return;
+  const r = tlEl.getBoundingClientRect();
+  const dt = (ev.clientX - tlDrag.x)/r.width*videoDur;
+  const {mode, s0, e0} = tlDrag;
+  if(mode==='l'){ const s = Math.min(Math.max(0, s0+dt), e0-1); setTrim(s, e0); $('preview').currentTime = s; }
+  else if(mode==='r'){ const e = Math.max(Math.min(videoDur, e0+dt), s0+1); setTrim(s0, e); $('preview').currentTime = e; }
+  else { const len = e0-s0; const s = Math.max(0, Math.min(s0+dt, videoDur-len)); setTrim(s, s+len); }
+});
+window.addEventListener('pointerup', () => tlDrag = null);
+$('preview').addEventListener('timeupdate', () => {
+  if(videoDur) tlCur.style.left = ($('preview').currentTime/videoDur*100) + '%';
+});
+// filmstrip thumbnails inside the bar (best-effort — bar works even if this fails)
+async function buildStrip(){
+  const track = $('tlTrack'); track.innerHTML = '';
+  try{
+    const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = $('preview').src;
+    await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = rej; setTimeout(res, 3000); });
+    const N = 8, w = 96, h = 56;
+    for(let i=0; i<N; i++){
+      const c = document.createElement('canvas'); c.width = w; c.height = h; track.appendChild(c);
+      v.currentTime = Math.min(Math.max(0, videoDur-0.1), (i+0.5)/N*videoDur);
+      await new Promise(res => { v.onseeked = res; setTimeout(res, 900); });
+      try{ c.getContext('2d').drawImage(v, 0, 0, w, h); }catch(e){}
+    }
+  }catch(e){ console.warn('filmstrip failed', e); }
+}
 
 function prog(pct, msg){ $('prog').style.display='block'; $('fill').style.width=Math.round(pct)+'%'; if(msg) $('stage').textContent=msg; }
 
