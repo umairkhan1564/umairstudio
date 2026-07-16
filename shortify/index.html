@@ -59,6 +59,18 @@
   .mini{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer}
   .mini:hover{border-color:var(--accent)}
   .trim .hint{font-size:12px;color:var(--mut);margin-top:8px}
+  .mo{position:fixed;inset:0;background:rgba(5,6,12,.72);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:50}
+  .mo.hidden{display:none}
+  .mob{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:380px;width:calc(100% - 40px);text-align:center;position:relative}
+  .mob h3{font-size:20px;margin-bottom:10px}
+  .mob p{color:var(--mut);font-size:14px;margin-bottom:18px}
+  .mob .mbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px;padding:11px 20px;border-radius:10px;border:0;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:100%}
+  .mob .mx{position:absolute;top:10px;right:14px;background:none;border:0;color:var(--mut);font-size:18px;cursor:pointer}
+  .mob .mx:hover{color:var(--fg)}
+  #authSlot{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+  #authSlot img{width:26px;height:26px;border-radius:50%}
+  #authSlot button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--mut);padding:5px 10px;font-size:12px;cursor:pointer}
+  #authSlot button:hover{color:var(--fg);border-color:var(--accent)}
 </style>
 <script type="importmap">
 { "imports": {
@@ -70,7 +82,7 @@
 <body>
 <header><div class="wrap"><nav>
   <a href="../" class="logo"><span class="mark">⚡</span> UmairStudio</a>
-  <a href="../" class="back">← All tools</a>
+  <span style="display:flex;align-items:center;gap:14px"><span id="authSlot"></span><a href="../" class="back">← All tools</a></span>
 </nav></div></header>
 
 <div class="wrap">
@@ -117,15 +129,15 @@
       <div>
         <label>Caption style</label>
         <select id="caps">
-          <option>Karaoke Yellow</option>
-          <option>Karaoke Green</option>
-          <option>Word Pop</option>
           <option>Bold White</option>
           <option>Yellow Pop</option>
-          <option>TikTok Thick</option>
-          <option>Boxed Black</option>
-          <option>Green Screen</option>
           <option>Minimal</option>
+          <option value="Karaoke Yellow">🔒 Karaoke Yellow — Pro</option>
+          <option value="Karaoke Green">🔒 Karaoke Green — Pro</option>
+          <option value="Word Pop">🔒 Word Pop — Pro</option>
+          <option value="TikTok Thick">🔒 TikTok Thick — Pro</option>
+          <option value="Boxed Black">🔒 Boxed Black — Pro</option>
+          <option value="Green Screen">🔒 Green Screen — Pro</option>
           <option value="off">No captions</option>
         </select>
       </div>
@@ -143,13 +155,82 @@
   <div id="results" class="grid"></div>
 </div>
 
+<div id="modal" class="mo hidden"><div class="mob">
+  <button class="mx" id="moX">✕</button>
+  <h3 id="moTitle"></h3>
+  <p id="moText"></p>
+  <button class="mbtn" id="moBtn"></button>
+</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="/vendor/ffmpeg.js"></script>
 <script type="module">
 const { FFmpeg } = FFmpegWASM;
 
 const $ = id => document.getElementById(id);
-let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Karaoke Yellow';
+let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Bold White';
 let INPUT = 'in', videoDur = 0;
+
+// ---------- Auth (Firebase Google login) ----------
+// Firebase web-app config — login gate is ON while this is set.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBwIMwmqzPV-05sQxXyo4oJnXJV5ROh6ww",
+  authDomain: "umairstudio.firebaseapp.com",
+  projectId: "umairstudio",
+  storageBucket: "umairstudio.firebasestorage.app",
+  messagingSenderId: "663358190480",
+  appId: "1:663358190480:web:7bec30086457d793b73915"
+};
+const AUTH_ON = !!(FIREBASE_CONFIG && window.firebase);
+let USER = null;
+if (AUTH_ON){
+  firebase.initializeApp(FIREBASE_CONFIG);
+  firebase.auth().onAuthStateChanged(u => { USER = u; renderAuth(); });
+}
+function renderAuth(){
+  const el = $('authSlot'); if(!el) return;
+  if(!AUTH_ON){ el.innerHTML=''; return; }
+  el.innerHTML = USER
+    ? `<img src="${USER.photoURL||''}" alt=""> <span>${(USER.displayName||USER.email||'').split(' ')[0]}</span> <button id="signOut">Sign out</button>`
+    : `<button id="signIn">Sign in</button>`;
+  const so = $('signOut'), si = $('signIn');
+  if(so) so.onclick = () => firebase.auth().signOut();
+  if(si) si.onclick = doLogin;
+}
+function doLogin(){
+  hideModal();
+  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(e => { if(e && e.code !== 'auth/popup-closed-by-user') alert('Sign-in failed: '+(e.message||e)); });
+}
+// returns true when the user may proceed; otherwise shows the login modal
+function requireLogin(){
+  if(!AUTH_ON || USER) return true;
+  showModal('Sign in to make shorts', 'It’s free — one click with your Google account. Your videos still never leave your browser.', 'Continue with Google', doLogin);
+  return false;
+}
+
+// ---------- Modal ----------
+function showModal(title, text, btn, onBtn){
+  $('moTitle').textContent = title; $('moText').textContent = text;
+  $('moBtn').textContent = btn; $('moBtn').onclick = onBtn || hideModal;
+  $('modal').classList.remove('hidden');
+}
+function hideModal(){ $('modal').classList.add('hidden'); }
+$('moX').onclick = hideModal;
+$('modal').onclick = e => { if(e.target === $('modal')) hideModal(); };
+
+// ---------- Free vs Pro caption styles ----------
+const FREE_STYLES = ['Bold White','Yellow Pop','Minimal','off'];
+const isPro = () => false; // Pro tier not launched yet — flips via backend later
+function lockPremium(sel, prev){
+  sel.onchange = () => {
+    if(FREE_STYLES.includes(sel.value) || isPro()){ prev.v = sel.value; return; }
+    sel.value = prev.v;
+    showModal('🔒 Pro caption style', 'Animated karaoke styles are part of Shortify Pro — launching soon with face tracking, 1080p/2K and full-episode support.', 'OK');
+  };
+}
+lockPremium($('caps'), {v:'Bold White'});
 
 const drop = $('drop'), fileInput = $('file');
 drop.onclick = () => fileInput.click();
@@ -245,7 +326,7 @@ const CAP_KEYS = Object.keys(CAP_STYLES);
 // seg.chunks are WORD-level {s,e,t}. Group 3 words per line using their REAL
 // start/end times so each caption shows exactly while those words are spoken.
 function captionFilters(seg, styleName){
-  const style = CAP_STYLES[styleName] || CAP_STYLES['Karaoke Yellow'];
+  const style = CAP_STYLES[styleName] || CAP_STYLES['Bold White'];
   const parts=[];
   const words = seg.chunks || [];
   for(let i=0; i<words.length; i+=3){
@@ -260,7 +341,7 @@ function captionFilters(seg, styleName){
 
 async function renderShort(i, card){
   const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
-  const capStyle = s.caps || 'Karaoke Yellow';
+  const capStyle = s.caps || 'Bold White';
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
   if(capStyle!=='off') vf.push(...captionFilters(s, capStyle));
   const outName=`short_${i}_${Date.now()}.mp4`;
@@ -283,12 +364,17 @@ async function renderShort(i, card){
         <div><label>End (sec)</label><input type="number" step="0.5" class="ee" value="${s.end.toFixed(1)}"></div>
       </div>
       <label style="margin-top:8px">Caption style</label>
-      <select class="ec">${[...CAP_KEYS,'off'].map(v=>`<option value="${v}"${v===capStyle?' selected':''}>${v==='off'?'No captions':v}</option>`).join('')}</select>
+      <select class="ec">${[...CAP_KEYS,'off'].map(v=>{
+        const lock = !FREE_STYLES.includes(v) && !isPro();
+        const label = v==='off' ? 'No captions' : (lock ? '🔒 '+v+' — Pro' : v);
+        return `<option value="${v}"${v===capStyle?' selected':''}>${label}</option>`;
+      }).join('')}</select>
       <button class="rr">🔁 Re-render this short</button>
       <div class="spin hidden">re-rendering… please wait</div>
     </div>`;
   const edit=card.querySelector('.edit');
   card.querySelector('.ebtn').onclick=()=>edit.classList.toggle('hidden');
+  lockPremium(card.querySelector('.ec'), {v: FREE_STYLES.includes(capStyle) ? capStyle : 'Bold White'});
   card.querySelector('.rr').onclick=async()=>{
     const ns=parseFloat(card.querySelector('.es').value), ne=parseFloat(card.querySelector('.ee').value);
     if(!(ne-ns>=1)){ alert('End must be at least 1 second after start.'); return; }
@@ -301,6 +387,7 @@ async function renderShort(i, card){
 }
 
 $('go').onclick = async () => {
+  if(!requireLogin()) return;
   if(!videoFile){ alert('Please choose a video first.'); return; }
   $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
   try{
