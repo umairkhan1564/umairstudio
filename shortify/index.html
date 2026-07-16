@@ -128,17 +128,9 @@
         </div>
       </div>
       <div class="tl-times"><span id="tlA">0:00</span><b id="tlMid"></b><span id="tlB">0:00</span></div>
-      <div class="trim">
-        <div class="r">
-          <div class="fld"><label>Trim start (sec)</label><input id="trimStart" type="number" min="0" step="1" value="0"></div>
-          <button class="mini" id="setStart" type="button">◁ Set to current</button>
-          <div class="fld"><label>Trim end (sec)</label><input id="trimEnd" type="number" min="0" step="1"></div>
-          <button class="mini" id="setEnd" type="button">Set to current ▷</button>
-          <button class="mini" id="trimFull" type="button">Full video</button>
-          <span class="hint" id="durInfo" style="margin:0 0 8px"></span>
-        </div>
-        <div class="hint">Long video? Play the preview, set a Start–End range, and Shortify will make shorts from just that part.</div>
-      </div>
+      <div class="hint" style="font-size:12px;color:var(--mut);margin-top:6px">Drag the handles to pick the part you want shorts from — double-click the bar to select the full video.</div>
+      <input type="hidden" id="trimStart" value="0">
+      <input type="hidden" id="trimEnd">
     </div>
 
     <div class="opts">
@@ -273,14 +265,9 @@ function setFile(f){
   $('fname').textContent = f.name + ' — ' + (f.size/1048576).toFixed(1) + ' MB';
   const pv = $('preview'); pv.src = URL.createObjectURL(f); $('trimWrap').classList.remove('hidden');
   pv.onloadedmetadata = () => { videoDur = pv.duration || 0; $('trimEnd').value = Math.round(videoDur);
-    $('trimStart').value = 0; $('durInfo').textContent = 'Length: ' + fmtT(videoDur);
+    $('trimStart').value = 0;
     updateTL(); buildStrip(); };
 }
-// trim controls
-$('setStart').onclick = () => { $('trimStart').value = Math.floor($('preview').currentTime); updateTL(); };
-$('setEnd').onclick   = () => { $('trimEnd').value = Math.ceil($('preview').currentTime); updateTL(); };
-$('trimFull').onclick = () => { $('trimStart').value = 0; $('trimEnd').value = Math.round(videoDur); updateTL(); };
-$('trimStart').oninput = updateTL; $('trimEnd').oninput = updateTL;
 
 // ---------- CapCut-style drag timeline ----------
 const tlEl=$('tl'), tlSel=$('tlSel'), tlCur=$('tlCur');
@@ -319,6 +306,7 @@ window.addEventListener('pointermove', ev => {
   else { const len = e0-s0; const s = Math.max(0, Math.min(s0+dt, videoDur-len)); setTrim(s, s+len); }
 });
 window.addEventListener('pointerup', () => tlDrag = null);
+tlEl.ondblclick = () => setTrim(0, videoDur); // double-click = full video
 $('preview').addEventListener('timeupdate', () => {
   if(videoDur) tlCur.style.left = ($('preview').currentTime/videoDur*100) + '%';
 });
