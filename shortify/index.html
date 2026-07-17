@@ -333,6 +333,9 @@ function prog(pct, msg){ $('prog').style.display='block'; $('fill').style.width=
 // Netlify for /shortify/*). Browsers/hosts without it fall back to the
 // single-thread core automatically.
 const MT = window.crossOriginIsolated === true;
+// mt core MUST get an explicit thread count — "auto" spawns one thread per
+// hardware core and deadlocks on high-core machines. 4 is the sweet spot.
+const TH = MT ? ['-threads','4'] : [];
 async function loadFFmpeg(){
   if (ffmpeg) return ffmpeg;
   ffmpeg = new FFmpeg();
@@ -428,8 +431,8 @@ async function renderShort(i, card){
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
   if(capStyle!=='off') vf.push(...captionFilters(s, capStyle));
   const outName=`short_${i}_${Date.now()}.mp4`;
-  await ffmpeg.exec(['-ss',String(s.start),'-i',INPUT,'-t',String(dur),'-vf',vf.join(','),
-    '-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
+  await ffmpeg.exec([...TH,'-ss',String(s.start),'-i',INPUT,'-t',String(dur),'-vf',vf.join(','),
+    ...TH,'-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
   const data=await ffmpeg.readFile(outName);
   const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
   // name the download after the caption/title (Windows-safe)
@@ -483,9 +486,9 @@ $('go').onclick = async () => {
     const t1 = parseFloat($('trimEnd').value);
     if((t0 > 0.5 || (t1 && t1 < videoDur - 0.5)) && (!t1 || t1 > t0 + 1)){
       prog(12, 'Trimming to selected range…');
-      const args = ['-ss', String(t0), '-i', 'in'];
+      const args = [...TH, '-ss', String(t0), '-i', 'in'];
       if(t1 && t1 > t0) args.push('-t', String(t1 - t0));
-      args.push('-c:v','libx264','-preset','ultrafast','-crf','26','-c:a','aac','-y','trimmed.mp4');
+      args.push(...TH,'-c:v','libx264','-preset','ultrafast','-crf','26','-c:a','aac','-y','trimmed.mp4');
       await fm.exec(args);
       INPUT = 'trimmed.mp4';
     }
