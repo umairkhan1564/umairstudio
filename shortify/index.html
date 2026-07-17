@@ -408,37 +408,53 @@ function segScore(seg, es){
   }
   return score;
 }
-// group speech into segments of [minLen, maxLen], ranked by the engagement score
-// (es = energyStats(...) computed BEFORE transcription — the pcm buffer gets
-// transferred to the whisper worker and is detached afterwards)
+// TRUE highlight ANALYSIS (not sequential slicing): the whole talk is split
+// into sentences, a candidate clip is anchored at EVERY sentence start
+// (extended over following sentences until it reaches minLen, ending on a
+// sentence boundary), every candidate is scored (loudness, laughter, hook
+// words, questions), and the best non-overlapping ones win. es =
+// energyStats(...) computed BEFORE transcription — the pcm buffer gets
+// transferred to the whisper worker and is detached afterwards.
 function pickHighlights(chunks, minLen, maxLen, count, es){
   if(!chunks.length) return [];
   const mk = (s,e,ch)=>({ start:s, end:Math.min(e, s+maxLen), text: ch.map(x=>x.text).join('').trim(),
     chunks: ch.map(x=>({ s:x.timestamp[0], e:x.timestamp[1] ?? x.timestamp[0], t:x.text })) });
-  // Cut clips at SENTENCE ends or silence gaps (not mid-thought) — once a segment
-  // reaches minLen it keeps extending until the speaker finishes the sentence,
-  // pauses (>0.8s), or maxLen forces the cut. Next clip then starts at the next
-  // word, so every short begins at the start of a thought.
-  const segs=[]; let cur=[], start=chunks[0].timestamp[0];
+  // 1) sentences: split at .?! or a >0.8s pause
+  const sents=[]; let cur=[], s0=chunks[0].timestamp[0];
   for(let ci=0; ci<chunks.length; ci++){
-    const c = chunks[ci];
-    cur.push(c);
+    const c = chunks[ci]; cur.push(c);
     const end = c.timestamp[1] ?? c.timestamp[0];
-    const len = end - start;
     const next = chunks[ci+1];
     const gap = next ? ((next.timestamp[0] ?? end) - end) : 99;
-    const sentenceEnd = /[.?!]["’']?\s*$/.test((c.text||'').trim());
-    if(len >= minLen && (sentenceEnd || gap > 0.8 || len >= maxLen)){
-      segs.push(mk(start,end,cur)); cur=[];
-      start = next ? (next.timestamp[0] ?? end) : end;   // skip the silence between clips
+    if(/[.?!]["’']?\s*$/.test((c.text||'').trim()) || gap > 0.8){
+      sents.push({start:s0, end, words:cur}); cur=[];
+      s0 = next ? (next.timestamp[0] ?? end) : end;
     }
   }
-  if(cur.length){ const end = cur[cur.length-1].timestamp[1] ?? start;
-    if(end - start >= Math.min(6, minLen)) segs.push(mk(start,end,cur)); }
-  segs.forEach(s => s.score = segScore(s, es));
-  segs.sort((a,b)=> b.score - a.score);
-  const picked = count>0 ? segs.slice(0,count) : segs.slice(0, Math.min(segs.length, 6));
-  picked.sort((a,b)=> a.start - b.start);   // keep story order in the results
+  if(cur.length){ const end = cur[cur.length-1].timestamp[1] ?? s0; sents.push({start:s0, end, words:cur}); }
+  // 2) one candidate anchored at every sentence
+  const cands=[];
+  for(let i=0; i<sents.length; i++){
+    let words=[], end=sents[i].start, ok=false;
+    for(let j=i; j<sents.length; j++){
+      if(sents[j].end - sents[i].start > maxLen) break;
+      words = words.concat(sents[j].words); end = sents[j].end;
+      if(end - sents[i].start >= minLen){ ok = true; break; }
+    }
+    if(ok || (end - sents[i].start >= Math.min(6, minLen) && i === sents.length-1))
+      cands.push(mk(sents[i].start, end, words));
+  }
+  if(!cands.length) cands.push(mk(sents[0].start, sents[sents.length-1].end, sents.flatMap(s=>s.words)));
+  // 3) score every candidate, pick the best non-overlapping ones
+  cands.forEach(c => c.score = segScore(c, es));
+  cands.sort((a,b)=> b.score - a.score);
+  const want = count>0 ? count : Math.min(6, Math.max(1, Math.round(cands.length/4)));
+  const picked=[];
+  for(const c of cands){
+    if(picked.every(p => c.end <= p.start || c.start >= p.end)) picked.push(c);
+    if(picked.length >= want) break;
+  }
+  picked.sort((a,b)=> a.start - b.start);   // story order in the results
   return picked;
 }
 
@@ -468,12 +484,18 @@ function captionFilters(seg, styleName){
   const style = CAP_STYLES[styleName] || CAP_STYLES['Bold White'];
   const parts=[];
   const words = seg.chunks || [];
-  // 2 words per line — big fonts stay inside the 720px frame (CapCut-style punchy lines)
+  // 2 words per line — big fonts stay inside the 720px frame (CapCut-style punchy lines).
+  // Windows are clamped so lines NEVER overlap in time — overlapping drawtexts
+  // stamp on top of each other and produce garbled text.
+  let prevEnd = 0;
   for(let i=0; i<words.length; i+=2){
     const grp = words.slice(i, i+2);
+    const nxt = words[i+2];
     const txt = escTxt(grp.map(w=>w.t).join(' ')); if(!txt) continue;
-    const gs = Math.max(0, (grp[0].s - seg.start));
-    const ge = Math.max(gs+0.15, (grp[grp.length-1].e - seg.start));
+    let gs = Math.max(0, (grp[0].s - seg.start), prevEnd + 0.01);
+    let ge = Math.max(gs+0.15, (grp[grp.length-1].e - seg.start));
+    if(nxt) ge = Math.min(ge, Math.max(gs+0.15, (nxt.s - seg.start) - 0.02));
+    prevEnd = ge;
     parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x=(w-text_w)/2:y=h-300:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
   }
   return parts;
