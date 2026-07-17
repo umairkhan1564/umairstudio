@@ -10,11 +10,19 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# NOTE: to later enable MULTI-THREADED ffmpeg (much faster caption burning),
-# uncomment the two headers below AND self-host transformers.js (COEP blocks
-# cross-origin CDN loads). Do NOT enable yet — it breaks the jsdelivr loads.
-# [[headers]]
-#   for = "/*"
-#   [headers.values]
-#     Cross-Origin-Opener-Policy = "same-origin"
-#     Cross-Origin-Embedder-Policy = "require-corp"
+[[headers]]
+  for = "/vendor-mt/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cross-origin isolation on the Shortify page only -> SharedArrayBuffer ->
+# MULTI-THREADED ffmpeg (much faster renders). COEP "credentialless" (not
+# require-corp) so CDN/gtag/firebase subresources keep loading; browsers
+# without credentialless support (Safari) simply fall back to single-thread.
+# Google-login POPUPS break under COOP same-origin, so sign-in lives on
+# /login/ (no headers there) and Shortify just reads the shared auth state.
+[[headers]]
+  for = "/shortify/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"

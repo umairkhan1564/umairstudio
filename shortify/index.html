@@ -220,9 +220,10 @@ function renderAuth(){
   if(si) si.onclick = doLogin;
 }
 function doLogin(){
-  hideModal();
-  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
-    .catch(e => { if(e && e.code !== 'auth/popup-closed-by-user') alert('Sign-in failed: '+(e.message||e)); });
+  // Popup sign-in breaks under this page's cross-origin-isolation headers
+  // (needed for the fast multi-thread engine), so sign-in happens on /login/
+  // and Firebase's shared auth state brings the session back here.
+  location.href = '/login/?next=' + encodeURIComponent(location.pathname);
 }
 // returns true when the user may proceed; otherwise shows the login modal
 function requireLogin(){
@@ -328,13 +329,20 @@ async function buildStrip(){
 
 function prog(pct, msg){ $('prog').style.display='block'; $('fill').style.width=Math.round(pct)+'%'; if(msg) $('stage').textContent=msg; }
 
+// Multi-thread engine needs cross-origin isolation (COOP/COEP headers, set on
+// Netlify for /shortify/*). Browsers/hosts without it fall back to the
+// single-thread core automatically.
+const MT = window.crossOriginIsolated === true;
 async function loadFFmpeg(){
   if (ffmpeg) return ffmpeg;
   ffmpeg = new FFmpeg();
-  await ffmpeg.load({
-    coreURL: new URL('/vendor/ffmpeg-core.js', location.origin).href,
-    wasmURL: new URL('/vendor/ffmpeg-core.wasm', location.origin).href,
-  });
+  const dir = MT ? '/vendor-mt' : '/vendor';
+  const opts = {
+    coreURL: new URL(dir + '/ffmpeg-core.js', location.origin).href,
+    wasmURL: new URL(dir + '/ffmpeg-core.wasm', location.origin).href,
+  };
+  if (MT) opts.workerURL = new URL(dir + '/ffmpeg-core.worker.js', location.origin).href;
+  await ffmpeg.load(opts);
   try{
     const fontData = new Uint8Array(await (await fetch('/vendor/font.ttf')).arrayBuffer());
     await ffmpeg.writeFile('/font.ttf', fontData);
@@ -466,7 +474,7 @@ $('go').onclick = async () => {
   if(!videoFile){ alert('Please choose a video first.'); return; }
   $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
   try{
-    prog(2,'Loading video engine…'); await loadFFmpeg();
+    prog(2, MT ? 'Loading video engine (⚡ fast multi-thread)…' : 'Loading video engine…'); await loadFFmpeg();
     const fm = ffmpeg;
     await fm.writeFile('in', new Uint8Array(await videoFile.arrayBuffer()));
     INPUT = 'in';
