@@ -173,6 +173,7 @@
     <div class="note">First run downloads the AI model (~80 MB) and the video engine once — after that it's cached and fast. Everything happens on your device; your video never leaves your browser.</div>
   </div>
 
+  <button class="btn hidden" id="dlAll" style="margin:4px 0 18px">⬇ Download all shorts (.zip)</button>
   <div id="results" class="grid"></div>
 </div>
 
@@ -191,7 +192,7 @@ const { FFmpeg } = FFmpegWASM;
 
 const $ = id => document.getElementById(id);
 let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Bold White';
-let INPUT = 'in', videoDur = 0;
+let INPUT = 'in', videoDur = 0, RESULTS = [];
 
 // ---------- Auth (Firebase Google login) ----------
 // Firebase web-app config — login gate is ON while this is set.
@@ -373,8 +374,44 @@ function transcribe(pcm){
   });
 }
 
-// group speech into segments of [minLen, maxLen], ranked by talk density
-function pickHighlights(chunks, minLen, maxLen, count){
+// ---------- Smart highlight picking (ported from the desktop engine) ----------
+// Audio loudness per 0.5s window — loud/peaky moments = laughter, emphasis, hype.
+function energyStats(pcm, sr){
+  const win = 0.5, n = Math.floor(win*sr), rms = [];
+  for(let i=0; i+n<=pcm.length; i+=n){
+    let s=0; for(let j=i;j<i+n;j++){ const v=pcm[j]; s+=v*v; }
+    rms.push(Math.sqrt(s/n));
+  }
+  const mean = rms.reduce((a,b)=>a+b,0)/(rms.length||1);
+  const sd = Math.sqrt(rms.reduce((a,b)=>a+(b-mean)*(b-mean),0)/(rms.length||1)) || 1e-9;
+  return {rms, mean, sd, win};
+}
+const FUN_RE = /\b(funny|crazy|insane|wow|omg|amazing|unbelievable|incredible|secret|never|always|best|worst|free|money|win|hack|trick|shock|weird|literally|actually)\b/gi;
+const LAUGH_RE = /\b(laughter|laughs|laughing|applause|cheering|haha)\b/gi;
+function segScore(seg, es){
+  const t = seg.text || '';
+  let score = 0;
+  score += (t.match(/!/g)||[]).length * 0.8;          // excitement
+  score += (t.match(/\?/g)||[]).length * 0.6;          // questions hook viewers
+  score += (t.match(FUN_RE)||[]).length * 1.0;         // hook words
+  score += (t.match(LAUGH_RE)||[]).length * 2.5;       // Whisper writes LAUGHTER/APPLAUSE tokens
+  score += Math.min(1.5, t.length/240);                // mild talk-density
+  if(es){                                              // loudness vs the video's average
+    const a = Math.floor(seg.start/es.win), b = Math.max(a+1, Math.ceil(seg.end/es.win));
+    let z=0, c=0, peaks=0;
+    for(let i=a; i<b && i<es.rms.length; i++){
+      z += (es.rms[i]-es.mean)/es.sd; c++;
+      if(es.rms[i] > es.mean + 1.6*es.sd) peaks++;
+    }
+    score += Math.max(-2, Math.min(3, (c ? z/c : 0) * 1.2));
+    score += Math.min(2.5, peaks * 0.5);
+  }
+  return score;
+}
+// group speech into segments of [minLen, maxLen], ranked by the engagement score
+// (es = energyStats(...) computed BEFORE transcription — the pcm buffer gets
+// transferred to the whisper worker and is detached afterwards)
+function pickHighlights(chunks, minLen, maxLen, count, es){
   if(!chunks.length) return [];
   const mk = (s,e,ch)=>({ start:s, end:Math.min(e, s+maxLen), text: ch.map(x=>x.text).join('').trim(),
     chunks: ch.map(x=>({ s:x.timestamp[0], e:x.timestamp[1] ?? x.timestamp[0], t:x.text })) });
@@ -386,27 +423,31 @@ function pickHighlights(chunks, minLen, maxLen, count){
   }
   if(cur.length){ const end = cur[cur.length-1].timestamp[1] ?? start;
     if(end - start >= Math.min(6, minLen)) segs.push(mk(start,end,cur)); }
-  segs.sort((a,b)=> b.text.length - a.text.length);
-  return count>0 ? segs.slice(0,count) : segs.slice(0, Math.min(segs.length, 6));
+  segs.forEach(s => s.score = segScore(s, es));
+  segs.sort((a,b)=> b.score - a.score);
+  const picked = count>0 ? segs.slice(0,count) : segs.slice(0, Math.min(segs.length, 6));
+  picked.sort((a,b)=> a.start - b.start);   // keep story order in the results
+  return picked;
 }
 
 // drawtext is font-file based (reliable in wasm — this core's libass has no
 // fontconfig, so subtitles/fontsdir renders blank). 3 words at a time, timed.
 // drawtext + filtergraph are very picky: commas, colons, quotes, brackets, = all
 // break the graph. Keep only safe chars so captions always render cleanly.
-function escTxt(t){ return (t||'').toUpperCase().replace(/[’'`]/g,'')
-  .replace(/[^A-Z0-9 .!?-]/g,'').replace(/\s+/g,' ').trim().slice(0,32); }
+function escTxt(t){ return (t||'').toUpperCase()
+  .replace(/[^A-Z0-9 .!?]/g,'').replace(/\s+/g,' ').trim().slice(0,28); }
 // 9 caption styles (match the desktop app). Each is a full drawtext param string.
+// Sizes tuned for the 720x1280 canvas — big, thick, readable on a phone.
 const CAP_STYLES = {
-  'Karaoke Yellow': 'fontsize=42:fontcolor=yellow:borderw=5:bordercolor=black',
-  'Karaoke Green':  'fontsize=42:fontcolor=0x2bff88:borderw=5:bordercolor=black',
-  'Word Pop':       'fontsize=48:fontcolor=white:borderw=7:bordercolor=black',
-  'Bold White':     'fontsize=42:fontcolor=white:borderw=4:bordercolor=black',
-  'Yellow Pop':     'fontsize=50:fontcolor=yellow:borderw=7:bordercolor=black',
-  'TikTok Thick':   'fontsize=44:fontcolor=white:borderw=10:bordercolor=black',
-  'Boxed Black':    'fontsize=40:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=16',
-  'Green Screen':   'fontsize=42:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=14',
-  'Minimal':        'fontsize=36:fontcolor=white:borderw=2:bordercolor=black@0.7',
+  'Karaoke Yellow': 'fontsize=54:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
+  'Karaoke Green':  'fontsize=54:fontcolor=0x2bff88:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
+  'Word Pop':       'fontsize=60:fontcolor=white:borderw=8:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
+  'Bold White':     'fontsize=54:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
+  'Yellow Pop':     'fontsize=62:fontcolor=yellow:borderw=8:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
+  'TikTok Thick':   'fontsize=56:fontcolor=white:borderw=12:bordercolor=black',
+  'Boxed Black':    'fontsize=50:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=18',
+  'Green Screen':   'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16',
+  'Minimal':        'fontsize=44:fontcolor=white:borderw=3:bordercolor=black@0.7',
 };
 const CAP_KEYS = Object.keys(CAP_STYLES);
 // seg.chunks are WORD-level {s,e,t}. Group 3 words per line using their REAL
@@ -420,7 +461,7 @@ function captionFilters(seg, styleName){
     const txt = escTxt(grp.map(w=>w.t).join(' ')); if(!txt) continue;
     const gs = Math.max(0, (grp[0].s - seg.start));
     const ge = Math.max(gs+0.15, (grp[grp.length-1].e - seg.start));
-    parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x=(w-text_w)/2:y=h-240:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
+    parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x=(w-text_w)/2:y=h-300:enable='between(t,${gs.toFixed(2)},${ge.toFixed(2)})'`);
   }
   return parts;
 }
@@ -437,7 +478,8 @@ async function renderShort(i, card){
   const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
   // name the download after the caption/title (Windows-safe)
   const title=(s.text||'').replace(/[<>:"/\\|?*\n\r]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
-  const dlName=(title || ('short '+(i+1))) + '.mp4';
+  const dlName=((title || ('short '+(i+1))) + '.mp4').replace(/"/g,'');
+  RESULTS[i] = { url, name: dlName };
   card = card || document.createElement('div');
   card.className='clip'; card.id='clip'+i;
   card.innerHTML=`<video src="${url}" controls preload="metadata"></video>
@@ -475,7 +517,7 @@ async function renderShort(i, card){
 $('go').onclick = async () => {
   if(!requireLogin()) return;
   if(!videoFile){ alert('Please choose a video first.'); return; }
-  $('results').innerHTML=''; SEGMENTS=[]; $('go').disabled=true;
+  $('results').innerHTML=''; SEGMENTS=[]; RESULTS=[]; $('dlAll').classList.add('hidden'); $('go').disabled=true;
   try{
     prog(2, MT ? 'Loading video engine (⚡ fast multi-thread)…' : 'Loading video engine…'); await loadFFmpeg();
     const fm = ffmpeg;
@@ -499,6 +541,7 @@ $('go').onclick = async () => {
     const audioCtx = new AudioContext({sampleRate:16000});
     const buf = await audioCtx.decodeAudioData(wav.buffer.slice(0));
     const pcm = new Float32Array(buf.getChannelData(0));
+    const ES = energyStats(pcm, 16000);   // must run before transcribe() — it transfers the buffer
     const chunks = await transcribe(pcm);
 
     let minLen=10, maxLen=60;
@@ -506,7 +549,7 @@ $('go').onclick = async () => {
     if(lv!=='auto'){ const p=lv.split('-').map(Number); minLen=p[0]; maxLen=p[1]; }
     const count = parseInt($('count').value)||0;
     const capStyle = $('caps').value;
-    SEGMENTS = pickHighlights(chunks, minLen, maxLen, count);
+    SEGMENTS = pickHighlights(chunks, minLen, maxLen, count, ES);
     SEGMENTS.forEach(s => s.caps = capStyle);   // each clip keeps the chosen style
     if(!SEGMENTS.length){ prog(100,'No speech found to clip.'); $('go').disabled=false; return; }
 
@@ -515,8 +558,33 @@ $('go').onclick = async () => {
       await renderShort(i);
     }
     prog(100,`Done — ${SEGMENTS.length} shorts ready!`);
+    if(SEGMENTS.length > 1) $('dlAll').classList.remove('hidden');
   }catch(err){ console.error(err); $('stage').textContent='Error: '+(err.message||err); }
   $('go').disabled=false;
+};
+
+// ---------- Download all shorts as one .zip ----------
+$('dlAll').onclick = async () => {
+  const items = RESULTS.filter(Boolean);
+  if(!items.length) return;
+  const btn = $('dlAll'); btn.disabled = true;
+  const orig = btn.textContent;
+  try{
+    btn.textContent = 'Packing zip…';
+    const { default: JSZip } = await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm');
+    const zip = new JSZip();
+    const used = {};
+    for(const it of items){
+      let name = it.name;
+      if(used[name]) name = name.replace(/\.mp4$/, ` (${++used[it.name]}).mp4`); else used[name] = 1;
+      zip.file(name, await (await fetch(it.url)).blob());
+    }
+    const blob = await zip.generateAsync({type:'blob'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'shorts.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ alert('Zip failed: ' + (e.message||e)); }
+  btn.textContent = orig; btn.disabled = false;
 };
 </script>
 </body>
