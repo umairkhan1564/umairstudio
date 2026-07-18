@@ -162,6 +162,13 @@
           <option value="off">No captions</option>
         </select>
       </div>
+      <div>
+        <label>Auto-enhance</label>
+        <select id="enhance">
+          <option value="on">On — polish + clean (recommended)</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
     </div>
 
     <button class="btn" id="go">✨ Make shorts</button>
@@ -505,15 +512,27 @@ function captionFilters(seg, styleName){
 async function renderShort(i, card){
   const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
   const capStyle = s.caps || 'Bold White';
+  const enh = (($('enhance')||{}).value || 'on') === 'on';
+  const title=(s.text||'').replace(/[<>:"/\\|?*\n\r]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
+  // auto-enhance: subtle colour/contrast/saturation lift + light sharpen (applied
+  // BEFORE captions so text stays crisp). Purely a visual quality boost.
+  if(enh) vf.push('eq=contrast=1.06:brightness=0.02:saturation=1.12','unsharp=5:5:0.7:3:3:0.3');
   if(capStyle!=='off') vf.push(...captionFilters(s, capStyle));
   const outName=`short_${i}_${Date.now()}.mp4`;
+  // quality bump (veryfast+crf21 > ultrafast+crf24) and, with enhance on, strip
+  // the source's metadata and stamp our own + web-optimised faststart.
+  const enc = enh
+    ? ['-c:v','libx264','-preset','veryfast','-crf','21','-c:a','aac','-b:a','160k',
+       '-map_metadata','-1','-metadata',`title=${title||'ClipCut Studio short'}`,
+       '-metadata','comment=Made with ClipCut Studio - clipcutstudio.co',
+       '-movflags','+faststart']
+    : ['-c:v','libx264','-preset','veryfast','-crf','22','-c:a','aac','-b:a','160k'];
   await ffmpeg.exec([...TH,'-ss',String(s.start),'-i',INPUT,'-t',String(dur),'-vf',vf.join(','),
-    ...TH,'-c:v','libx264','-preset','ultrafast','-crf','24','-c:a','aac','-y',outName]);
+    ...TH,...enc,'-y',outName]);
   const data=await ffmpeg.readFile(outName);
   const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
   // name the download after the caption/title (Windows-safe)
-  const title=(s.text||'').replace(/[<>:"/\\|?*\n\r]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
   const dlName=((title || ('short '+(i+1))) + '.mp4').replace(/"/g,'');
   RESULTS[i] = { url, name: dlName };
   card = card || document.createElement('div');
