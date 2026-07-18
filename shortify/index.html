@@ -191,6 +191,44 @@
   <button class="mbtn" id="moBtn"></button>
 </div></div>
 
+<div id="upModal" class="mo hidden"><div class="mob" style="max-width:440px;text-align:left">
+  <button class="mx" id="upX">✕</button>
+  <h3 style="text-align:center;margin-bottom:4px">✨ Upgrade to Shortify Pro</h3>
+  <p style="color:var(--mut);font-size:13.5px;text-align:center;margin-bottom:18px">Unlock premium animated captions, HD &amp; more.</p>
+  <div style="display:grid;gap:12px">
+    <div style="border:1px solid var(--line);border-radius:12px;padding:16px;background:#0c0d1a">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Basic</b><b style="font-size:20px">$5<small style="color:var(--mut);font-size:12px;font-weight:400">/mo</small></b></div>
+      <ul style="list-style:none;margin-top:10px;display:grid;gap:6px;font-size:13px;color:var(--mut)">
+        <li>✅ All 9 premium animated caption styles</li>
+        <li>✅ 1080p HD output</li>
+        <li>✅ More &amp; longer shorts</li>
+        <li>✅ Ad-free</li>
+      </ul>
+    </div>
+    <div style="border:2px solid var(--cta);border-radius:12px;padding:16px;background:#0c0d1a;position:relative">
+      <span style="position:absolute;top:-10px;right:14px;background:var(--cta);color:#2a1404;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px">BEST VALUE</span>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Pro</b><b style="font-size:20px">$10<small style="color:var(--mut);font-size:12px;font-weight:400">/mo</small></b></div>
+      <ul style="list-style:none;margin-top:10px;display:grid;gap:6px;font-size:13px;color:var(--mut)">
+        <li>✅ Everything in Basic</li>
+        <li>🎯 Face tracking (auto-reframe)</li>
+        <li>🎬 Full episodes (2GB+) &amp; 2K</li>
+        <li>⚡ Priority + accurate Urdu/Hindi</li>
+        <li style="color:var(--cta2);font-size:11.5px">Server features rolling out this week</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--mut)">
+    <b style="color:var(--fg)">How to get Pro:</b>
+    <div style="margin-top:8px;line-height:1.7">
+      1. Pay via <b style="color:var(--fg)">JazzCash</b> <span id="payJazz">—</span> or <b style="color:var(--fg)">Binance</b> <span id="payBinance">—</span><br>
+      2. Send the payment screenshot + your account email below to <b style="color:var(--fg)" id="payContact">—</b><br>
+      3. Your account is upgraded within a few hours ✨
+    </div>
+    <div style="margin-top:12px;background:#0c0d1a;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:12.5px">Your account: <b style="color:var(--cta2)" id="upEmail">—</b></div>
+  </div>
+  <button class="mbtn" id="upClose" style="margin-top:16px;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;border:0;border-radius:10px;padding:11px;width:100%;font-weight:700;cursor:pointer">Got it</button>
+</div></div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="/vendor/ffmpeg.js"></script>
@@ -215,18 +253,59 @@ const AUTH_ON = !!(FIREBASE_CONFIG && window.firebase);
 let USER = null;
 if (AUTH_ON){
   firebase.initializeApp(FIREBASE_CONFIG);
-  firebase.auth().onAuthStateChanged(u => { USER = u; renderAuth(); });
+  firebase.auth().onAuthStateChanged(u => { USER = u; renderAuth(); checkPro(); });
 }
+
+// ---------- Pro entitlement ----------
+// Manual activation: the owner adds the SHA-256 of a paid user's email to
+// /pro.json. The page hashes the signed-in email and checks membership, so
+// customer emails are never exposed publicly.
+let PRO_ACTIVE = false, PRO_PLAN = '';
+async function sha256hex(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+async function checkPro(){
+  PRO_ACTIVE = false; PRO_PLAN = '';
+  try{
+    if(USER && USER.email){
+      const h = await sha256hex(USER.email.trim().toLowerCase());
+      const data = await (await fetch('/pro.json?ts='+Date.now(), {cache:'no-store'})).json();
+      const rec = data[h];
+      if(rec && (!rec.until || new Date(rec.until) >= new Date())){ PRO_ACTIVE = true; PRO_PLAN = rec.plan || 'pro'; }
+    }
+  }catch(e){}
+  renderAuth();
+}
+
 function renderAuth(){
   const el = $('authSlot'); if(!el) return;
   if(!AUTH_ON){ el.innerHTML=''; return; }
-  el.innerHTML = USER
-    ? `<img src="${USER.photoURL||''}" alt=""> <span>${(USER.displayName||USER.email||'').split(' ')[0]}</span> <button id="signOut">Sign out</button>`
-    : `<button id="signIn">Sign in</button>`;
-  const so = $('signOut'), si = $('signIn');
+  if(USER){
+    const name = (USER.displayName||USER.email||'').split(' ')[0];
+    const badge = PRO_ACTIVE
+      ? `<span style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">✨ ${PRO_PLAN==='pro'?'PRO':'BASIC'}</span>`
+      : `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;font-weight:700;border:0">✨ Upgrade</button>`;
+    el.innerHTML = `${badge} <img src="${USER.photoURL||''}" alt=""> <span>${name}</span> <button id="signOut">Sign out</button>`;
+  } else {
+    el.innerHTML = `<button id="signIn">Sign in</button>`;
+  }
+  const so = $('signOut'), si = $('signIn'), gp = $('goPro');
   if(so) so.onclick = () => firebase.auth().signOut();
   if(si) si.onclick = doLogin;
+  if(gp) gp.onclick = showUpgrade;
 }
+
+// ---------- Upgrade modal ----------
+const PAY = { jazzcash: '03084973164 (Muhammad Umair Khan)', binance: '762700380', contact: 'umairkhan1564@gmail.com · WhatsApp +92 308 4973164' };
+function showUpgrade(){
+  if(!USER){ doLogin(); return; }
+  $('payJazz').textContent = PAY.jazzcash;
+  $('payBinance').textContent = PAY.binance;
+  $('payContact').textContent = PAY.contact;
+  $('upEmail').textContent = USER.email || '';
+  $('upModal').classList.remove('hidden');
+}
+function hideUpgrade(){ $('upModal').classList.add('hidden'); }
+$('upX').onclick = hideUpgrade; $('upClose').onclick = hideUpgrade;
+$('upModal').onclick = e => { if(e.target === $('upModal')) hideUpgrade(); };
 function doLogin(){
   // Popup sign-in breaks under this page's cross-origin-isolation headers
   // (needed for the fast multi-thread engine), so sign-in happens on /login/
@@ -252,12 +331,12 @@ $('modal').onclick = e => { if(e.target === $('modal')) hideModal(); };
 
 // ---------- Free vs Pro caption styles ----------
 const FREE_STYLES = ['Bold White','Yellow Pop','Minimal','off'];
-const isPro = () => false; // Pro tier not launched yet — flips via backend later
+const isPro = () => PRO_ACTIVE;
 function lockPremium(sel, prev){
   sel.onchange = () => {
     if(FREE_STYLES.includes(sel.value) || isPro()){ prev.v = sel.value; return; }
     sel.value = prev.v;
-    showModal('🔒 Pro caption style', 'Animated karaoke styles are part of Shortify Pro — launching soon with face tracking, 1080p/2K and full-episode support.', 'OK');
+    showUpgrade();
   };
 }
 lockPremium($('caps'), {v:'Bold White'});
@@ -519,6 +598,7 @@ async function renderShort(i, card){
   // BEFORE captions so text stays crisp). Purely a visual quality boost.
   if(enh) vf.push('eq=contrast=1.06:brightness=0.02:saturation=1.12','unsharp=5:5:0.7:3:3:0.3');
   if(capStyle!=='off') vf.push(...captionFilters(s, capStyle));
+  if(isPro()) vf.push('scale=1080:1920:flags=lanczos');   // Pro: 1080p HD output
   const outName=`short_${i}_${Date.now()}.mp4`;
   // quality bump (veryfast+crf21 > ultrafast+crf24) and, with enhance on, strip
   // the source's metadata and stamp our own + web-optimised faststart.

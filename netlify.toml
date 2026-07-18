@@ -31,3 +31,12 @@
   [headers.values]
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Embedder-Policy = "credentialless"
+
+# Desktop Downloader auto-update files live on the VPS (281MB installer can't
+# sit in git). The app checks clipcutstudio.co/downloads/clipcut-updates/ — a
+# 302 sends it straight to the VPS so big downloads never touch Netlify.
+[[redirects]]
+  from = "/downloads/clipcut-updates/*"
+  to = "https://downloader.clipcutstudio.co/downloads/clipcut-updates/:splat"
+  status = 302
+  force = true
