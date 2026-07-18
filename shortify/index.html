@@ -257,9 +257,9 @@ if (AUTH_ON){
 }
 
 // ---------- Pro entitlement ----------
-// Manual activation: the owner adds the SHA-256 of a paid user's email to
-// /pro.json. The page hashes the signed-in email and checks membership, so
-// customer emails are never exposed publicly.
+// Pro status comes from the live entitlement API on the VPS (owner enables
+// subscriptions from the web admin tool). The page sends only the SHA-256 of
+// the signed-in email — the customer's email is never sent or exposed.
 let PRO_ACTIVE = false, PRO_PLAN = '';
 async function sha256hex(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
 async function checkPro(){
@@ -267,9 +267,8 @@ async function checkPro(){
   try{
     if(USER && USER.email){
       const h = await sha256hex(USER.email.trim().toLowerCase());
-      const data = await (await fetch('/pro.json?ts='+Date.now(), {cache:'no-store'})).json();
-      const rec = data[h];
-      if(rec && (!rec.until || new Date(rec.until) >= new Date())){ PRO_ACTIVE = true; PRO_PLAN = rec.plan || 'pro'; }
+      const r = await (await fetch('https://downloader.clipcutstudio.co/pro-api/check?h='+h, {cache:'no-store'})).json();
+      if(r.pro){ PRO_ACTIVE = true; PRO_PLAN = r.plan || 'pro'; }
     }
   }catch(e){}
   renderAuth();
