@@ -462,8 +462,9 @@ function pickHighlights(chunks, minLen, maxLen, count, es){
 // fontconfig, so subtitles/fontsdir renders blank). 3 words at a time, timed.
 // drawtext + filtergraph are very picky: commas, colons, quotes, brackets, = all
 // break the graph. Keep only safe chars so captions always render cleanly.
+// captions carry NO punctuation at all (desktop-app behaviour, CapCut-style)
 function escTxt(t){ return (t||'').toUpperCase()
-  .replace(/[^A-Z0-9 .!?]/g,'').replace(/\s+/g,' ').trim().slice(0,18); }
+  .replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim().slice(0,18); }
 // 9 caption styles (match the desktop app). Each is a full drawtext param string.
 // Sizes tuned for the 720x1280 canvas — big, thick, readable on a phone.
 const CAP_STYLES = {
