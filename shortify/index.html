@@ -389,27 +389,41 @@ const DARK_BOX = ['Purple','Red','Blue'];   // box colors that need white text
 const FONT_META = { dejavu:{n:'Bold',s:54}, anton:{n:'Tall',s:60}, bangers:{n:'Comic',s:62},
   lucky:{n:'Chunky',s:56}, archivo:{n:'Heavy',s:52}, marker:{n:'Marker',s:52} };
 const SHDW = 'shadowcolor=black@0.6:shadowx=2:shadowy=2';
+// Styles differ STRUCTURALLY, not just by color: word count (1/2), position
+// (bottom/center), size and treatment vary per category. words / y ride on
+// each style and drive the real render.
 const CAP_STYLES = {}, ANIM_STYLES = {};
 (function genStyles(){
+  const SIX = ['White','Yellow','Green','Cyan','Pink','Orange'];
   for(const [fk, fm] of Object.entries(FONT_META)){
     for(const [cn, cv] of Object.entries(COLORS)){
       CAP_STYLES[`${fm.n} ${cn}`] = {f:fk, cat:'classic',
         p:`fontsize=${fm.s}:fontcolor=${cv}:borderw=6:bordercolor=black:${SHDW}`};
-      CAP_STYLES[`${fm.n} ${cn} Glow`] = {f:fk, cat:'glow',
-        p:`fontsize=${fm.s}:fontcolor=white:borderw=7:bordercolor=${cv}@0.9:shadowcolor=${cv}@0.45:shadowx=0:shadowy=4`};
-      CAP_STYLES[`${fm.n} ${cn} Box`] = {f:fk, cat:'boxed',
-        p:`fontsize=${fm.s-4}:fontcolor=${DARK_BOX.includes(cn)?'white':'black'}:box=1:boxcolor=${cv}@0.92:boxborderw=14`};
+      // glow / boxed only on their best 3 fonts each (keeps rows distinct)
+      if(fk==='anton' || fk==='archivo' || fk==='marker')
+        CAP_STYLES[`${fm.n} ${cn} Glow`] = {f:fk, cat:'glow',
+          p:`fontsize=${fm.s}:fontcolor=white:borderw=7:bordercolor=${cv}@0.9:shadowcolor=${cv}@0.45:shadowx=0:shadowy=4`};
+      if(fk==='bangers' || fk==='lucky' || fk==='archivo')
+        CAP_STYLES[`${fm.n} ${cn} Box`] = {f:fk, cat:'boxed',
+          p:`fontsize=${fm.s-4}:fontcolor=${DARK_BOX.includes(cn)?'white':'black'}:box=1:boxcolor=${cv}@0.92:boxborderw=14`};
       if(fk==='dejavu' || fk==='anton' || fk==='archivo')
         CAP_STYLES[`${fm.n} ${cn} Thick`] = {f:fk, cat:'thick',
           p:`fontsize=${fm.s}:fontcolor=${cv}:borderw=11:bordercolor=black`};
     }
+    // ONE WORD BIG (free): a single huge word at a time — totally different rhythm
+    for(const cn of SIX)
+      CAP_STYLES[`${fm.n} ${cn} Word`] = {f:fk, cat:'oneword', words:1,
+        p:`fontsize=${fm.s+14}:fontcolor=${COLORS[cn]}:borderw=8:bordercolor=black:${SHDW}`};
+    // CENTER SCREEN (Pro): captions in the middle of the frame (hormozi-style)
+    for(const cn of SIX)
+      CAP_STYLES[`${fm.n} ${cn} Center`] = {f:fk, cat:'center', y:'mid',
+        p:`fontsize=${fm.s+4}:fontcolor=${COLORS[cn]}:borderw=7:bordercolor=black:${SHDW}`};
   }
   CAP_STYLES['Minimal']      = {f:'dejavu', cat:'classic', p:'fontsize=44:fontcolor=white:borderw=3:bordercolor=black@0.7'};
   CAP_STYLES['TikTok Thick'] = {f:'dejavu', cat:'classic', p:'fontsize=56:fontcolor=white:borderw=12:bordercolor=black'};
   // karaoke: one word at a time, pops with the voice
-  const KAR_COLORS = ['White','Yellow','Green','Cyan','Pink','Orange'];
   for(const [fk, fm] of Object.entries(FONT_META))
-    for(const cn of KAR_COLORS)
+    for(const cn of SIX)
       ANIM_STYLES[`${fm.n} ${cn} Karaoke`] = {f:fk, cat:'karaoke', words:1, anim:'pop',
         p:`fontsize=${fm.s+6}:fontcolor=${COLORS[cn]}:borderw=7:bordercolor=black:${SHDW}`};
   for(const cn of ['Purple','Yellow','Red','Blue','Green','Pink'])
@@ -419,7 +433,7 @@ const CAP_STYLES = {}, ANIM_STYLES = {};
   const MOTION = { Bounce:{f:'lucky',anim:'bounce'}, Slide:{f:'anton',anim:'slide'}, Shake:{f:'bangers',anim:'shake'},
     Fade:{f:'dejavu',anim:'fade'}, Pulse:{f:'anton',anim:'pulse'} };
   for(const [mn, m] of Object.entries(MOTION))
-    for(const cn of KAR_COLORS){
+    for(const cn of SIX){
       const fm = FONT_META[m.f];
       ANIM_STYLES[`${mn} ${cn}`] = {f:m.f, cat:'motion', words:2, anim:m.anim,
         p:`fontsize=${fm.s}:fontcolor=${COLORS[cn]}:borderw=6:bordercolor=black:${SHDW}`};
@@ -427,10 +441,13 @@ const CAP_STYLES = {}, ANIM_STYLES = {};
   ANIM_STYLES['Green Screen'] = {f:'dejavu', cat:'motion', words:2, anim:null,
     p:'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16'};
 })();
-const CAT_LABELS = [ ['classic','Classic — Free'], ['thick','Thick outline 💎'], ['glow','Neon glow 💎'],
-  ['boxed','Boxed 💎'], ['karaoke','Karaoke — word by word 💎'], ['motion','Animated 💎'] ];
+const CAT_LABELS = [ ['classic','Classic — Free'], ['oneword','One Word Big — Free'], ['center','Center screen 💎'],
+  ['thick','Thick outline 💎'], ['glow','Neon glow 💎'], ['boxed','Boxed 💎'],
+  ['karaoke','Karaoke — word by word 💎'], ['motion','Animated 💎'] ];
+const CAT_SAMPLE = { classic:'THE QUICK', oneword:'WORD', center:'CENTER', thick:'THICK',
+  glow:'NEON', boxed:'BOXED', karaoke:'POP', motion:'MOVE IT' };
 const CAP_KEYS = [...Object.keys(CAP_STYLES), ...Object.keys(ANIM_STYLES)];
-const FREE_STYLES = [...Object.keys(CAP_STYLES).filter(k => CAP_STYLES[k].cat === 'classic'), 'off'];
+const FREE_STYLES = [...Object.keys(CAP_STYLES).filter(k => ['classic','oneword'].includes(CAP_STYLES[k].cat)), 'off'];
 const isPro = () => PRO_ACTIVE;
 const styleLabel = (v, lock) => v==='off' ? 'No captions'
   : (lock ? '🔒 ' : '') + v + (ANIM_STYLES[v] ? ' ⭐' : '') + (lock ? ' — Pro' : '');
@@ -455,11 +472,11 @@ function buildCapStrip(){
     const sp = d.querySelector('.cstx');
     if(v === 'off'){ sp.textContent = 'OFF'; sp.style.color = '#777'; sp.style.fontWeight = '700'; sp.style.fontSize = '13px'; }
     else {
-      applyCapLook(sp, v, 0.30);
+      const info = applyCapLook(sp, v, 0.30);
       sp.classList.add('cstx');   // applyCapLook resets className — keep the tile styling
-      const anim = ANIM_STYLES[v];
-      if(anim && anim.words === 1){ sp.textContent = 'POP'; KAR_TILES.push({sp, anim: anim.anim}); }
-      else sp.textContent = 'THE QUICK';
+      const stl = ANIM_STYLES[v] || CAP_STYLES[v];
+      if(info && info.words === 1){ sp.textContent = CAT_SAMPLE[stl.cat] || 'POP'; KAR_TILES.push({sp, anim: info.anim}); }
+      else sp.textContent = CAT_SAMPLE[stl.cat] || 'THE QUICK';
     }
     d.onclick = () => { sel.value = v; sel.dispatchEvent(new Event('change')); markCapSel(); };
     row.appendChild(d);
@@ -513,7 +530,7 @@ function applyCapLook(sp, name, scale){
     if(b !== '#000') sh += `,0 0 ${s*4}px ${b}`;   // colored border = neon glow feel
     sp.style.textShadow = sh; }
   if(anim && anim.anim) sp.classList.add('pv-' + anim.anim);
-  return { anim: anim ? anim.anim : null, words: anim ? (anim.words||2) : 2 };
+  return { anim: anim ? anim.anim : null, words: st.words || 2, y: st.y || 'bottom' };
 }
 function updateCapPreview(name){
   const box = $('capPrev'), sp = $('capPrevTxt'); if(!box || !sp) return;
@@ -538,6 +555,7 @@ function updateVidCap(name){
   ov.style.display = 'flex';
   const scale = Math.max(0.16, ($('preview').clientHeight || 280) / 1280);
   const info = applyCapLook(sp, name, scale);
+  ov.style.bottom = (info && info.y === 'mid') ? '45%' : '20%';   // center-screen styles preview mid-frame
   const seq = (info && info.words === 1)
     ? ['CAPTIONS','POP','WORD','BY','WORD']
     : ['THIS IS','HOW YOUR','CAPTIONS','WILL LOOK','ON VIDEO'];
@@ -820,7 +838,8 @@ function captionFilters(seg, styleName){
   const st = anim || CAP_STYLES[styleName] || CAP_STYLES['Bold White'];
   const style = st.p;
   const fontFile = '/f_' + (st.f || 'dejavu') + '.ttf';
-  const per = anim ? (anim.words || 2) : 2;
+  const per = st.words || 2;                                   // 1 = one big word at a time
+  const baseY = st.y === 'mid' ? '((h-text_h)/2)' : 'h-300';   // center-screen styles
   const parts=[];
   const words = seg.chunks || [];
   let prevEnd = 0;
@@ -834,11 +853,11 @@ function captionFilters(seg, styleName){
     prevEnd = ge;
     const G = gs.toFixed(2), E = ge.toFixed(2);
     // commas inside single-quoted drawtext values are safe in the filtergraph
-    let x = `(w-text_w)/2`, y = `h-300`, extra = '';
+    let x = `(w-text_w)/2`, y = baseY, extra = '';
     const a = anim && anim.anim;
-    if(a==='pop'){        y = `h-300+24*exp(-14*(t-${G}))`; extra = `:alpha='min(1,(t-${G})/0.09)'`; }
-    else if(a==='bounce'){ y = `h-300-10*abs(sin((t-${G})*9))`; }
-    else if(a==='slide'){  y = `h-260-min(40,(t-${G})*300)`; extra = `:alpha='min(1,(t-${G})/0.12)'`; }
+    if(a==='pop'){        y = `${baseY}+24*exp(-14*(t-${G}))`; extra = `:alpha='min(1,(t-${G})/0.09)'`; }
+    else if(a==='bounce'){ y = `${baseY}-10*abs(sin((t-${G})*9))`; }
+    else if(a==='slide'){  y = `${baseY}+40-min(40,(t-${G})*300)`; extra = `:alpha='min(1,(t-${G})/0.12)'`; }
     else if(a==='shake'){  x = `(w-text_w)/2+5*sin(28*t)`; }
     else if(a==='fade'){   extra = `:alpha='min(1,(t-${G})*7)*min(1,(${E}-t)*7)'`; }
     else if(a==='pulse'){  extra = `:alpha='0.62+0.38*abs(sin((t-${G})*7))'`; }
