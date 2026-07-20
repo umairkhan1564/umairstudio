@@ -112,6 +112,19 @@
   .pwrap{position:relative}
   #vidCap{position:absolute;left:0;right:0;bottom:20%;display:none;justify-content:center;pointer-events:none;z-index:5;text-align:center}
   #vidCapTxt{font-weight:800;letter-spacing:.5px;white-space:nowrap;display:inline-block}
+  @font-face{font-family:'CCDejaVu';src:url('/vendor/font.ttf');font-display:swap}
+  @font-face{font-family:'CCAnton';src:url('/vendor/fonts/Anton.ttf');font-display:swap}
+  @font-face{font-family:'CCBangers';src:url('/vendor/fonts/Bangers.ttf');font-display:swap}
+  @font-face{font-family:'CCLucky';src:url('/vendor/fonts/LuckiestGuy.ttf');font-display:swap}
+  @font-face{font-family:'CCArchivo';src:url('/vendor/fonts/ArchivoBlack.ttf');font-display:swap}
+  @font-face{font-family:'CCMarker';src:url('/vendor/fonts/Marker.ttf');font-display:swap}
+  .capstrip{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}
+  .cst{position:relative;flex:0 0 auto;width:104px;height:74px;background:#0c0d1a;border:2px solid var(--line);border-radius:11px;display:grid;place-items:center;cursor:pointer;overflow:hidden;transition:border-color .15s}
+  .cst:hover{border-color:var(--accent)}
+  .cst.sel{border-color:var(--cta);box-shadow:0 0 0 2px rgba(249,115,22,.35)}
+  .cst .cstx{white-space:nowrap;pointer-events:none;margin-bottom:10px}
+  .cst .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(5,6,12,.78);font-style:normal;font-size:9.5px;color:var(--mut);text-align:center;padding:2px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cst .gem{position:absolute;top:4px;left:6px;font-size:11px;font-style:normal;z-index:2}
 </style>
 <script type="importmap">
 { "imports": {
@@ -172,10 +185,6 @@
         </select>
       </div>
       <div>
-        <label>Caption style</label>
-        <select id="caps"></select>
-      </div>
-      <div>
         <label>Auto-enhance</label>
         <select id="enhance">
           <option value="off">Off</option>
@@ -184,9 +193,15 @@
       </div>
     </div>
 
+    <div style="margin-top:18px">
+      <label>Caption template — tap to preview</label>
+      <div class="capstrip" id="capStrip"></div>
+      <select id="caps" class="hidden"></select>
+    </div>
+
     <div class="cappv" id="capPrev">
       <span class="tag">Style preview</span>
-      <span class="propill" style="display:none">⭐ Pro style</span>
+      <span class="propill" style="display:none">💎 Pro style</span>
       <span id="capPrevTxt">YOUR CAPTIONS HERE</span>
     </div>
 
@@ -351,43 +366,51 @@ function hideModal(){ $('modal').classList.add('hidden'); }
 $('moX').onclick = hideModal;
 $('modal').onclick = e => { if(e.target === $('modal')) hideModal(); };
 
-// ---------- Caption styles: 20 free (plain) + Pro animated ----------
-// FREE = simple static looks (colors / outlines / boxes). Each is a full
-// drawtext param string, sizes tuned for the 720x1280 canvas.
+// ---------- Caption styles: 20 free + Pro animated — real VARIETY (5 extra fonts) ----------
+// f = font key (self-hosted TTFs), p = drawtext params for the 720x1280 canvas.
+const FONTS = {
+  dejavu:  {file:'/vendor/font.ttf',               fam:"'CCDejaVu',sans-serif"},
+  anton:   {file:'/vendor/fonts/Anton.ttf',        fam:"'CCAnton',sans-serif"},
+  bangers: {file:'/vendor/fonts/Bangers.ttf',      fam:"'CCBangers',cursive"},
+  lucky:   {file:'/vendor/fonts/LuckiestGuy.ttf',  fam:"'CCLucky',cursive"},
+  archivo: {file:'/vendor/fonts/ArchivoBlack.ttf', fam:"'CCArchivo',sans-serif"},
+  marker:  {file:'/vendor/fonts/Marker.ttf',       fam:"'CCMarker',cursive"},
+};
 const CAP_STYLES = {
-  'Bold White':    'fontsize=54:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Yellow Pop':    'fontsize=62:fontcolor=yellow:borderw=8:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Minimal':       'fontsize=44:fontcolor=white:borderw=3:bordercolor=black@0.7',
-  'Classic Yellow':'fontsize=54:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Fresh Green':   'fontsize=54:fontcolor=0x2bff88:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Sky Cyan':      'fontsize=54:fontcolor=0x35e0ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Hot Pink':      'fontsize=54:fontcolor=0xff5fd2:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Orange Punch':  'fontsize=56:fontcolor=0xff9a2e:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Alert Red':     'fontsize=56:fontcolor=0xff4d4d:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Cool Blue':     'fontsize=54:fontcolor=0x5fa8ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Golden':        'fontsize=56:fontcolor=0xffd700:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Lime Punch':    'fontsize=56:fontcolor=0xc8ff3d:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Purple Glow':   'fontsize=54:fontcolor=0xb264ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'Compact White': 'fontsize=44:fontcolor=white:borderw=5:bordercolor=black',
-  'Big Bold':      'fontsize=66:fontcolor=white:borderw=9:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2',
-  'TikTok Thick':  'fontsize=56:fontcolor=white:borderw=12:bordercolor=black',
-  'Boxed Black':   'fontsize=50:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=18',
-  'Boxed White':   'fontsize=50:fontcolor=black:box=1:boxcolor=white@0.9:boxborderw=16',
-  'Boxed Yellow':  'fontsize=50:fontcolor=black:box=1:boxcolor=yellow@0.92:boxborderw=16',
-  'Shadow Soft':   'fontsize=54:fontcolor=white:borderw=2:bordercolor=black@0.5:shadowcolor=black@0.85:shadowx=4:shadowy=4',
+  'Bold White':    {f:'dejavu', p:'fontsize=54:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Impact Tall':   {f:'anton',  p:'fontsize=60:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Comic Pop':     {f:'bangers',p:'fontsize=62:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Chunky':        {f:'lucky',  p:'fontsize=56:fontcolor=white:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Heavy Black':   {f:'archivo',p:'fontsize=52:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Marker':        {f:'marker', p:'fontsize=52:fontcolor=white:borderw=5:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Classic Yellow':{f:'dejavu', p:'fontsize=54:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Tall Yellow':   {f:'anton',  p:'fontsize=60:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Comic Green':   {f:'bangers',p:'fontsize=62:fontcolor=0x2bff88:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Chunky Pink':   {f:'lucky',  p:'fontsize=56:fontcolor=0xff5fd2:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Heavy Orange':  {f:'archivo',p:'fontsize=52:fontcolor=0xff9a2e:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Marker Gold':   {f:'marker', p:'fontsize=52:fontcolor=0xffd700:borderw=5:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Tall Red':      {f:'anton',  p:'fontsize=60:fontcolor=0xff4d4d:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Cool Blue':     {f:'dejavu', p:'fontsize=54:fontcolor=0x5fa8ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Tall Cyan':     {f:'anton',  p:'fontsize=60:fontcolor=0x35e0ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'TikTok Thick':  {f:'dejavu', p:'fontsize=56:fontcolor=white:borderw=12:bordercolor=black'},
+  'Boxed Black':   {f:'dejavu', p:'fontsize=50:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=18'},
+  'Boxed White':   {f:'archivo',p:'fontsize=48:fontcolor=black:box=1:boxcolor=white@0.9:boxborderw=16'},
+  'Boxed Yellow':  {f:'anton',  p:'fontsize=52:fontcolor=black:box=1:boxcolor=yellow@0.92:boxborderw=16'},
+  'Minimal':       {f:'dejavu', p:'fontsize=44:fontcolor=white:borderw=3:bordercolor=black@0.7'},
 };
 // PRO = the special stuff: word-by-word karaoke + animated motion (drawtext
 // t-based x/y/alpha expressions). words:1 = one word at a time on screen.
 const ANIM_STYLES = {
-  'Karaoke Yellow': {base:'fontsize=58:fontcolor=yellow:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2', words:1, anim:'pop'},
-  'Karaoke Green':  {base:'fontsize=58:fontcolor=0x2bff88:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2', words:1, anim:'pop'},
-  'Word Pop':       {base:'fontsize=66:fontcolor=white:borderw=9:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2', words:1, anim:'pop'},
-  'Bounce':         {base:'fontsize=56:fontcolor=white:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2', words:2, anim:'bounce'},
-  'Slide Up':       {base:'fontsize=54:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2', words:2, anim:'slide'},
-  'Shake Energy':   {base:'fontsize=56:fontcolor=yellow:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2', words:2, anim:'shake'},
-  'Fade Glow':      {base:'fontsize=56:fontcolor=white:borderw=6:bordercolor=0x8b5cff@0.85:shadowcolor=0x8b5cff@0.6:shadowx=0:shadowy=3', words:2, anim:'fade'},
-  'Neon Pulse':     {base:'fontsize=56:fontcolor=0x35e0ff:borderw=6:bordercolor=black:shadowcolor=0x35e0ff@0.5:shadowx=0:shadowy=3', words:2, anim:'pulse'},
-  'Green Screen':   {base:'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16', words:2, anim:null},
+  'Karaoke Yellow': {f:'anton',  words:1, anim:'pop',   p:'fontsize=64:fontcolor=yellow:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Karaoke Comic':  {f:'bangers',words:1, anim:'pop',   p:'fontsize=66:fontcolor=0x2bff88:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Word Pop':       {f:'archivo',words:1, anim:'pop',   p:'fontsize=62:fontcolor=white:borderw=8:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Highlight Box':  {f:'archivo',words:1, anim:'pop',   p:'fontsize=54:fontcolor=white:box=1:boxcolor=0x8b5cff@0.95:boxborderw=14'},
+  'Bounce':         {f:'lucky',  words:2, anim:'bounce',p:'fontsize=56:fontcolor=white:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Slide Up':       {f:'anton',  words:2, anim:'slide', p:'fontsize=58:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Shake Energy':   {f:'bangers',words:2, anim:'shake', p:'fontsize=60:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
+  'Fade Glow':      {f:'dejavu', words:2, anim:'fade',  p:'fontsize=56:fontcolor=white:borderw=6:bordercolor=0x8b5cff@0.85:shadowcolor=0x8b5cff@0.6:shadowx=0:shadowy=3'},
+  'Neon Pulse':     {f:'anton',  words:2, anim:'pulse', p:'fontsize=60:fontcolor=0x35e0ff:borderw=6:bordercolor=black:shadowcolor=0x35e0ff@0.5:shadowx=0:shadowy=3'},
+  'Green Screen':   {f:'dejavu', words:2, anim:null,    p:'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16'},
 };
 const CAP_KEYS = [...Object.keys(CAP_STYLES), ...Object.keys(ANIM_STYLES)];
 const FREE_STYLES = [...Object.keys(CAP_STYLES), 'off'];
@@ -395,16 +418,45 @@ const isPro = () => PRO_ACTIVE;
 const styleLabel = (v, lock) => v==='off' ? 'No captions'
   : (lock ? '🔒 ' : '') + v + (ANIM_STYLES[v] ? ' ⭐' : '') + (lock ? ' — Pro' : '');
 
-// main dropdown: Free group + Pro animated group
+// hidden select = the value store every other part reads; visible UI = tile strip
 (function(){
   const sel = $('caps');
-  const og1 = document.createElement('optgroup'); og1.label = 'Free styles';
-  Object.keys(CAP_STYLES).forEach(v => og1.append(new Option(v, v)));
-  const og2 = document.createElement('optgroup'); og2.label = 'Pro — animated ⭐';
-  Object.keys(ANIM_STYLES).forEach(v => og2.append(new Option(styleLabel(v, true), v)));
-  sel.append(og1, og2, new Option('No captions', 'off'));
+  [...CAP_KEYS, 'off'].forEach(v => sel.append(new Option(v, v)));
   sel.value = 'Bold White';
 })();
+// Vizard-style template strip: every tile is a live mini-preview of its style
+// (fonts via @font-face, Pro tiles animate + carry a 💎).
+function buildCapStrip(){
+  const sel = $('caps'), strip = $('capStrip'); if(!strip) return;
+  strip.innerHTML = '';
+  const mk = (v, label) => {
+    const d = document.createElement('div'); d.className = 'cst'; d.dataset.v = v;
+    d.innerHTML = `<span class="cstx"></span><i class="nm">${label}</i>` +
+      (FREE_STYLES.includes(v) ? '' : '<i class="gem">💎</i>');
+    const sp = d.querySelector('.cstx');
+    if(v === 'off'){ sp.textContent = 'OFF'; sp.style.color = '#777'; sp.style.fontWeight = '700'; sp.style.fontSize = '13px'; }
+    else {
+      applyCapLook(sp, v, 0.30);
+      sp.classList.add('cstx');   // applyCapLook resets className — keep the tile styling
+      const anim = ANIM_STYLES[v];
+      if(anim && anim.words === 1){
+        const W = ['POP','WORD','STYLE']; let i = 0; sp.textContent = W[0];
+        setInterval(() => { i = (i+1) % W.length; sp.textContent = W[i];
+          if(anim.anim){ sp.classList.remove('pv-'+anim.anim); void sp.offsetWidth; sp.classList.add('pv-'+anim.anim); } }, 650);
+      } else sp.textContent = 'THE QUICK';
+    }
+    d.onclick = () => { sel.value = v; sel.dispatchEvent(new Event('change')); markCapSel(); };
+    strip.appendChild(d);
+  };
+  mk('Bold White', 'Default');
+  CAP_KEYS.filter(v => v !== 'Bold White').forEach(v => mk(v, v));
+  mk('off', 'None');
+  markCapSel();
+}
+function markCapSel(){
+  const strip = $('capStrip'), v = $('caps').value; if(!strip) return;
+  [...strip.children].forEach(c => c.classList.toggle('sel', c.dataset.v === v));
+}
 
 // ---------- Live style preview (so users SEE the caption look before rendering) ----------
 const pvCol = c => { if(!c) return '#fff'; c = c.replace(/@[\d.]+$/,''); return c.startsWith('0x') ? '#'+c.slice(2) : c; };
@@ -415,9 +467,11 @@ function applyCapLook(sp, name, scale){
   sp.className = ''; sp.removeAttribute('style');
   if(name === 'off') return null;
   const anim = ANIM_STYLES[name];
-  const params = anim ? anim.base : (CAP_STYLES[name] || '');
+  const st = anim || CAP_STYLES[name] || CAP_STYLES['Bold White'];
+  const params = st.p || '';
   const get = k => { const m = params.match(new RegExp(k + '=([^:]+)')); return m ? m[1] : null; };
   const fs = parseInt(get('fontsize')) || 54;
+  sp.style.fontFamily = (FONTS[st.f] || FONTS.dejavu).fam;
   sp.style.fontSize = Math.max(11, Math.round(fs * scale)) + 'px';
   sp.style.color = pvCol(get('fontcolor'));
   if(get('box') === '1'){ sp.style.background = pvCol(get('boxcolor')); sp.style.padding = '.08em .3em'; sp.style.borderRadius = '.1em'; }
@@ -470,6 +524,7 @@ function lockPremium(sel, prev){
   };
 }
 lockPremium($('caps'), {v:'Bold White'});
+buildCapStrip();
 updateCapPreview('Bold White');
 // Auto-enhance is a Pro feature (quality polish + metadata clean)
 $('enhance').onchange = () => {
@@ -491,9 +546,15 @@ function quotaAdd(sec){
 }
 function renderQuota(){
   const el = $('quota'); if(!el) return;
-  if(isPro()){ el.textContent = '✨ Pro — unlimited processing'; return; }
+  let need = '';
+  if(videoDur){
+    const s = Math.max(0, parseFloat($('trimStart').value)||0);
+    const e = parseFloat($('trimEnd').value)||videoDur;
+    need = `Time needed: <b style="color:var(--fg)">${fmtT(Math.max(1, e > s ? e - s : videoDur))}</b> · `;
+  }
+  if(isPro()){ el.innerHTML = need + '✨ Pro — unlimited'; return; }
   const left = quotaLeft();
-  el.innerHTML = `Free: <b style="color:var(--fg)">${Math.floor(left/60)} min</b> of video left today · <a id="qUp">Go unlimited ✨</a>`;
+  el.innerHTML = need + `Time left today: <b style="color:var(--fg)">${Math.floor(left/60)} min</b> · <a id="qUp">Go unlimited ✨</a>`;
   const a = $('qUp'); if(a) a.onclick = showUpgrade;
 }
 renderQuota();
@@ -527,6 +588,7 @@ function updateTL(){
   tlSel.style.width = (Math.max(0, e-s)/videoDur*100) + '%';
   $('tlA').textContent = fmtT(s); $('tlB').textContent = fmtT(e);
   $('tlMid').textContent = 'Selected: ' + fmtT(e-s);
+  renderQuota();
 }
 function startDrag(mode){ return ev => { ev.preventDefault(); ev.stopPropagation();
   const {s,e} = trimVals(); tlDrag = {mode, x: ev.clientX, s0: s, e0: e}; }; }
@@ -590,12 +652,13 @@ async function loadFFmpeg(){
   };
   if (MT) opts.workerURL = new URL(dir + '/ffmpeg-core.worker.js', location.origin).href;
   await ffmpeg.load(opts);
-  try{
-    const fontData = new Uint8Array(await (await fetch('/vendor/font.ttf')).arrayBuffer());
-    await ffmpeg.writeFile('/font.ttf', fontData);
-    try{ await ffmpeg.createDir('/fonts'); }catch(e){}
-    await ffmpeg.writeFile('/fonts/font.ttf', fontData);
-  }catch(e){ console.warn('font load failed', e); }
+  // write every caption font into the ffmpeg FS (~600 KB total, cached by the browser)
+  for(const [k, f] of Object.entries(FONTS)){
+    try{
+      const data = new Uint8Array(await (await fetch(f.file)).arrayBuffer());
+      await ffmpeg.writeFile('/f_' + k + '.ttf', data);
+    }catch(e){ console.warn('font load failed: ' + k, e); }
+  }
   return ffmpeg;
 }
 
@@ -719,7 +782,9 @@ function escTxt(t){ return (t||'').toUpperCase()
 // drawtexts stamp on top of each other and produce garbled text.
 function captionFilters(seg, styleName){
   const anim = ANIM_STYLES[styleName];
-  const style = anim ? anim.base : (CAP_STYLES[styleName] || CAP_STYLES['Bold White']);
+  const st = anim || CAP_STYLES[styleName] || CAP_STYLES['Bold White'];
+  const style = st.p;
+  const fontFile = '/f_' + (st.f || 'dejavu') + '.ttf';
   const per = anim ? (anim.words || 2) : 2;
   const parts=[];
   const words = seg.chunks || [];
@@ -742,7 +807,7 @@ function captionFilters(seg, styleName){
     else if(a==='shake'){  x = `(w-text_w)/2+5*sin(28*t)`; }
     else if(a==='fade'){   extra = `:alpha='min(1,(t-${G})*7)*min(1,(${E}-t)*7)'`; }
     else if(a==='pulse'){  extra = `:alpha='0.62+0.38*abs(sin((t-${G})*7))'`; }
-    parts.push(`drawtext=fontfile=/font.ttf:text='${txt}':${style}:x='${x}':y='${y}'${extra}:enable='between(t,${G},${E})'`);
+    parts.push(`drawtext=fontfile=${fontFile}:text='${txt}':${style}:x='${x}':y='${y}'${extra}:enable='between(t,${G},${E})'`);
   }
   return parts;
 }
