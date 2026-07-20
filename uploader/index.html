@@ -15,30 +15,30 @@
 <meta name="description" content="Windows app that bulk-posts Reels, Videos, Stories, Photos and Text to all your Facebook Pages automatically. 3-day free trial.">
 <style>
   :root{
-    --bg:#0c0c14; --side:#0f0f17; --card:#1c1c28; --card2:#141420;
-    --accent:#a855f7; --accent2:#7c3aed; --green:#22c55e; --text:#f4f4f8;
-    --muted:#9a9ab0; --border:#2a2a3c;
+    --bg:#faf9ff; --side:#f5f2fd; --card:#ffffff; --card2:#f5f2fd;
+    --accent:#7c3aed; --accent2:#a855f7; --green:#16a34a; --text:#1b1433;
+    --muted:#6b6486; --border:#ded7f0;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.55;
-    background-image:radial-gradient(600px 400px at 15% -5%, rgba(168,85,247,.18), transparent),
-                     radial-gradient(500px 400px at 100% 10%, rgba(124,58,237,.12), transparent);}
+    background-image:radial-gradient(600px 400px at 15% -5%, rgba(124,58,237,.07), transparent),
+                     radial-gradient(500px 400px at 100% 10%, rgba(168,85,247,.05), transparent);}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:960px;margin:0 auto;padding:0 22px}
   .btn{display:inline-block;padding:15px 30px;border-radius:40px;font-weight:700;font-size:17px;
     transition:transform .12s ease, box-shadow .12s ease;cursor:pointer;border:none}
   .btn:hover{transform:translateY(-2px)}
   .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
-    box-shadow:0 10px 30px rgba(168,85,247,.4)}
-  .btn-green{background:var(--green);color:#06210f;box-shadow:0 10px 30px rgba(34,197,94,.35)}
+    box-shadow:0 10px 30px rgba(124,58,237,.25)}
+  .btn-green{background:var(--green);color:#ffffff;box-shadow:0 10px 30px rgba(22,163,74,.22)}
   .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
 
   /* HERO */
   header{padding:70px 0 40px;text-align:center}
-  .badge{display:inline-block;background:var(--green);color:#06210f;font-weight:800;
+  .badge{display:inline-block;background:var(--green);color:#ffffff;font-weight:800;
     padding:7px 18px;border-radius:30px;font-size:13px;letter-spacing:.5px;margin-bottom:26px}
   .logo{width:92px;height:92px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 12px 34px rgba(124,58,237,.5)}
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 12px 34px rgba(124,58,237,.30)}
   h1{font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-1px}
   h1 .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
   .sub{color:var(--muted);font-size:19px;margin:16px auto 8px;max-width:620px}
@@ -66,7 +66,7 @@
 
   /* PRICE */
   .price-card{max-width:420px;margin:0 auto;background:var(--card);border:1px solid var(--accent);
-    border-radius:20px;padding:32px;text-align:center;box-shadow:0 14px 40px rgba(168,85,247,.18)}
+    border-radius:20px;padding:32px;text-align:center;box-shadow:0 14px 40px rgba(124,58,237,.07)}
   .price{font-size:42px;font-weight:800;margin:6px 0}
   .price small{font-size:16px;color:var(--muted);font-weight:600}
   .price-card ul{list-style:none;text-align:left;margin:20px 0;display:inline-block}
@@ -78,7 +78,7 @@
   .req span{background:var(--card);border:1px solid var(--border);border-radius:30px;padding:9px 18px;font-size:14px;color:var(--muted)}
 
   /* DOWNLOAD BAND */
-  .band{background:linear-gradient(135deg,rgba(168,85,247,.14),rgba(124,58,237,.08));
+  .band{background:linear-gradient(135deg,rgba(124,58,237,.09),rgba(124,58,237,.08));
     border:1px solid var(--border);border-radius:24px;text-align:center;padding:44px 24px;margin:30px 0}
   .band h2{margin-bottom:14px}
 

@@ -14,15 +14,15 @@
 <title>Bulk Uploader — How to Use (Tutorial)</title>
 <style>
   :root{
-    --bg:#0c0c14; --card:#1c1c28; --card2:#141420; --side:#0f0f17;
-    --accent:#a855f7; --accent2:#7c3aed; --green:#22c55e; --red:#ef4444;
-    --text:#f4f4f8; --muted:#9a9ab0; --border:#2a2a3c;
+    --bg:#faf9ff; --card:#ffffff; --card2:#f5f2fd; --side:#f5f2fd;
+    --accent:#7c3aed; --accent2:#a855f7; --green:#16a34a; --red:#ef4444;
+    --text:#1b1433; --muted:#6b6486; --border:#ded7f0;
   }
   *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
   body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;
     align-items:center;justify-content:center;padding:20px;
     background-image:radial-gradient(600px 400px at 15% -5%, rgba(168,85,247,.16), transparent),
-                     radial-gradient(500px 400px at 100% 10%, rgba(124,58,237,.12), transparent);}
+                     radial-gradient(500px 400px at 100% 10%, rgba(168,85,247,.05), transparent);}
 
   .stage{width:100%;max-width:900px}
   .topbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
@@ -35,11 +35,11 @@
   .videowrap{margin-bottom:22px}
   .vhead{margin-bottom:12px}
   .videowrap video{width:100%;display:block;border-radius:20px;border:1px solid var(--border);
-    background:#000;box-shadow:0 20px 60px rgba(0,0,0,.5);aspect-ratio:16/9}
+    background:#000;box-shadow:0 20px 60px rgba(25,18,51,.18);aspect-ratio:16/9}
   .vsub{text-align:center;color:var(--muted);font-size:13.5px;margin-top:12px}
 
   .frame{position:relative;background:var(--card);border:1px solid var(--border);border-radius:20px;
-    overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    overflow:hidden;box-shadow:0 20px 60px rgba(25,18,51,.18)}
   .progress{height:4px;background:var(--card2)}
   .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#c084fc);transition:width .25s linear}
 
@@ -57,7 +57,7 @@
   .row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-size:14px;color:var(--text)}
   .row+.row{margin-top:6px}
   .pill{padding:9px 16px;border-radius:9px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px}
-  .p-green{background:var(--green);color:#06210f}
+  .p-green{background:var(--green);color:#ffffff}
   .p-accent{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
   .p-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
@@ -88,7 +88,7 @@
   .endcard{text-align:center;padding-top:20px}
   .endcard .big{font-size:30px;font-weight:800;margin:10px 0}
   .endcard .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .wa{display:inline-block;background:var(--green);color:#06210f;font-weight:800;padding:12px 24px;border-radius:30px;margin-top:14px}
+  .wa{display:inline-block;background:var(--green);color:#ffffff;font-weight:800;padding:12px 24px;border-radius:30px;margin-top:14px}
 </style>
 </head>
 <body>
