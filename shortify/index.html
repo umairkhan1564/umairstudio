@@ -15,7 +15,7 @@
 <meta name="description" content="Turn long videos into ready-to-post vertical shorts with auto captions — free, right in your browser.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
 <style>
-  :root{--bg:#faf9ff;--card:#ffffff;--line:#e7e2f5;--fg:#1b1433;--mut:#6b6486;--accent:#7c3aed;--accent2:#a855f7;--cta:#7c3aed;--cta2:#a855f7;--green:#16a34a}
+  :root{--bg:#faf9ff;--card:#ffffff;--line:#d8d1ec;--fg:#1b1433;--mut:#6b6486;--accent:#7c3aed;--accent2:#a855f7;--cta:#7c3aed;--cta2:#a855f7;--green:#16a34a}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--fg);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.6}
   a{color:inherit;text-decoration:none}
@@ -91,10 +91,6 @@
   #authSlot img{width:26px;height:26px;border-radius:50%}
   #authSlot button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--mut);padding:5px 10px;font-size:12px;cursor:pointer}
   #authSlot button:hover{color:var(--fg);border-color:var(--accent)}
-  .cappv{margin-top:14px;background:linear-gradient(135deg,#151027,#0c0d1a);border:1px solid var(--line);border-radius:12px;height:96px;display:grid;place-items:center;overflow:hidden;position:relative}
-  .cappv .tag{position:absolute;top:8px;left:10px;font-size:11px;color:#b9b3d1}
-  .cappv .propill{position:absolute;top:8px;right:10px;font-size:11px;color:var(--cta2);font-weight:700}
-  #capPrevTxt{font-weight:800;letter-spacing:.5px;white-space:nowrap}
   @keyframes pvPop{0%{transform:translateY(16px) scale(.7);opacity:0}28%,100%{transform:none;opacity:1}}
   @keyframes pvBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
   @keyframes pvSlide{0%{transform:translateY(24px);opacity:0}35%,100%{transform:none;opacity:1}}
@@ -107,6 +103,16 @@
   .pv-shake{animation:pvShake .35s infinite}
   .pv-fade{animation:pvFade 1.6s infinite}
   .pv-pulse{animation:pvPulse 1s infinite}
+  /* inside the small tiles the same animations run with gentler moves so the
+     text stays neatly inside the box */
+  @keyframes pvPopS{0%{transform:translateY(8px) scale(.85);opacity:0}28%,100%{transform:none;opacity:1}}
+  @keyframes pvBounceS{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes pvSlideS{0%{transform:translateY(10px);opacity:0}35%,100%{transform:none;opacity:1}}
+  @keyframes pvShakeS{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+  .cst .pv-pop{animation:pvPopS 1.1s infinite}
+  .cst .pv-bounce{animation:pvBounceS .7s infinite}
+  .cst .pv-slide{animation:pvSlideS 1.2s infinite}
+  .cst .pv-shake{animation:pvShakeS .35s infinite}
   #quota{text-align:center;font-size:12.5px;color:var(--mut);margin-top:9px}
   #quota a{color:var(--cta2);font-weight:600;cursor:pointer}
   .pwrap{position:relative}
@@ -197,12 +203,6 @@
       <label>Caption template — tap to preview</label>
       <div class="capstrip" id="capStrip"></div>
       <select id="caps" class="hidden"></select>
-    </div>
-
-    <div class="cappv" id="capPrev">
-      <span class="tag">Style preview</span>
-      <span class="propill" style="display:none">💎 Pro style</span>
-      <span id="capPrevTxt">YOUR CAPTIONS HERE</span>
     </div>
 
     <button class="btn" id="go">✨ Make shorts</button>
@@ -451,6 +451,8 @@ function buildCapStrip(){
     else {
       const info = applyCapLook(sp, v, 0.30);
       sp.classList.add('cstx');   // applyCapLook resets className — keep the tile styling
+      // uniform sample size so every tile reads clean and even
+      sp.style.fontSize = (info && info.words === 1 ? 17 : 14) + 'px';
       if(info && info.words === 1){ sp.textContent = 'POP'; KAR_TILES.push({sp, anim: info.anim}); }
       else sp.textContent = 'THE QUICK';
     }
@@ -501,20 +503,6 @@ function applyCapLook(sp, name, scale){
   if(anim && anim.anim) sp.classList.add('pv-' + anim.anim);
   return { anim: anim ? anim.anim : null, words: st.words || 2, y: st.y || 'bottom' };
 }
-function updateCapPreview(name){
-  const box = $('capPrev'), sp = $('capPrevTxt'); if(!box || !sp) return;
-  clearInterval(box._iv);
-  box.querySelector('.propill').style.display = FREE_STYLES.includes(name) ? 'none' : 'block';
-  const info = applyCapLook(sp, name, 0.55);
-  if(!info){ sp.textContent = '(no captions)'; sp.style.color = 'var(--mut)'; sp.style.fontSize = '14px'; sp.style.fontWeight = '400'; return; }
-  const cycle = info.words === 1;
-  const W = ['CAPTIONS','THAT','POP','ON','SCREEN']; let wi = 0;
-  sp.textContent = cycle ? W[0] : 'YOUR CAPTIONS HERE';
-  if(cycle) box._iv = setInterval(() => {
-    wi = (wi+1) % W.length; sp.textContent = W[wi];
-    if(info.anim){ sp.classList.remove('pv-'+info.anim); void sp.offsetWidth; sp.classList.add('pv-'+info.anim); }
-  }, 600);
-}
 // Caption layer ON the video preview — cycles sample lines in the chosen style
 // so users see exactly how captions will land on their video.
 function updateVidCap(name){
@@ -539,7 +527,7 @@ function updateVidCap(name){
 window.addEventListener('resize', () => updateVidCap($('caps').value));
 function lockPremium(sel, prev){
   sel.onchange = () => {
-    if(sel.id === 'caps'){ updateCapPreview(sel.value); updateVidCap(sel.value); }   // preview even locked styles
+    if(sel.id === 'caps') updateVidCap(sel.value);   // on-video preview, even for locked styles
     if(FREE_STYLES.includes(sel.value) || isPro()){ prev.v = sel.value; return; }
     sel.value = prev.v;
     showUpgrade();
@@ -547,7 +535,6 @@ function lockPremium(sel, prev){
 }
 lockPremium($('caps'), {v:'Bold White'});
 buildCapStrip();
-updateCapPreview('Bold White');
 // Auto-enhance is a Pro feature (quality polish + metadata clean)
 $('enhance').onchange = () => {
   if($('enhance').value === 'on' && !isPro()){ $('enhance').value = 'off'; showUpgrade(); }

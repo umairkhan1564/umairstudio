@@ -11,14 +11,14 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ClipCut Studio — Turn long videos into viral shorts</title>
+<title>ClipCut Studio — Free tools for content creators</title>
 <meta name="description" content="Free creator tools: turn long videos into viral shorts with auto captions, download content in bulk, and auto-post to your pages.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#faf9ff;--card:#ffffff;--card2:#f5f2fd;--line:rgba(25,18,51,.12);--fg:#1b1433;--mut:#6b6486;--dim:#8d87a8;--accent:#7c3aed;--accent2:#a855f7;--cta:#7c3aed;--cta2:#a855f7}
+  :root{--bg:#faf9ff;--card:#ffffff;--card2:#f5f2fd;--line:rgba(25,18,51,.18);--fg:#1b1433;--mut:#6b6486;--dim:#8d87a8;--accent:#7c3aed;--accent2:#a855f7;--cta:#7c3aed;--cta2:#a855f7}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,Arial,sans-serif;line-height:1.65}
   a{color:inherit;text-decoration:none}
@@ -54,6 +54,19 @@
   .checks{list-style:none;display:grid;gap:11px;margin-bottom:28px}
   .checks li{display:flex;gap:11px;align-items:flex-start;color:var(--mut);font-size:15px}
   .checks li::before{content:'✓';color:var(--accent);font-weight:800;flex:0 0 auto}
+  .feature.rev{grid-template-columns:.9fr 1.1fr}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px}
+  .chip{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);color:var(--accent);font-size:13px;font-weight:600;padding:7px 14px;border-radius:20px}
+  .fbtns{display:flex;gap:12px;flex-wrap:wrap}
+  .dlr{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 12px;display:grid;gap:6px}
+  .dlr .t{font-size:11px;color:var(--fg);font-weight:600;display:flex;justify-content:space-between}
+  .dlr .t b{color:var(--accent)}
+  .dlr .p{height:6px;border-radius:4px;background:rgba(25,18,51,.08);overflow:hidden}
+  .dlr .p i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .upr{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:var(--fg)}
+  .upr .st{color:var(--green);font-size:10.5px;display:flex;gap:5px;align-items:center}
+  .upr .st::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green)}
+  .upr .st.q{color:var(--accent)} .upr .st.q::before{background:var(--accent)}
   .shot{background:var(--card2);border:1px solid var(--line);border-radius:14px;aspect-ratio:16/10.5;display:grid;place-items:center;overflow:hidden;position:relative}
   .shot .fake{width:78%;display:grid;gap:10px}
   .shot .fbar{height:9px;border-radius:6px;background:rgba(25,18,51,.10)}
@@ -78,7 +91,7 @@
   .band p{color:var(--mut);margin-bottom:28px}
   footer{border-top:1px solid var(--line);padding:34px 0;margin-top:40px}
   .frow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--dim);font-size:13.5px}
-  @media(max-width:820px){.feature{grid-template-columns:1fr;padding:34px}.navlinks{gap:16px}.navlinks .hidesm{display:none}.hero{padding:66px 0 46px}}
+  @media(max-width:820px){.feature,.feature.rev{grid-template-columns:1fr;padding:34px}.feature.rev .shot{order:2}.navlinks{gap:16px}.navlinks .hidesm{display:none}.hero{padding:66px 0 46px}}
 </style>
 </head>
 <body>
@@ -101,8 +114,8 @@
 <section class="hero">
   <div class="wrap">
     <span class="eyebrow">Free tools for content creators</span>
-    <h1>Turn long videos into <span class="grad">viral shorts.</span></h1>
-    <p class="sub">ClipCut Studio gives creators free, fast tools — make shorts with auto captions, download content in bulk, and auto-post to your pages.</p>
+    <h1>Everything a creator needs, <span class="grad">in one studio.</span></h1>
+    <p class="sub">Make viral shorts with auto captions, download content in bulk, and auto-post to your pages — free, fast tools built for content creators, with new tools landing here first.</p>
     <div class="cta-row">
       <a href="/tools/" class="btn btn-primary">Explore the tools →</a>
       <a href="#feature" class="btn btn-ghost">See how it works</a>
@@ -120,17 +133,21 @@
   <div class="wrap">
     <div class="feature">
       <div>
-        <span class="eyebrow">Shortify by ClipCut Studio</span>
+        <span class="eyebrow">✂️ Shortify — make shorts</span>
         <h2>One long video in. Ready-to-post shorts out.</h2>
-        <p>Upload a video and Shortify finds the best moments, cuts them into vertical shorts, and burns in word-by-word captions — all inside your browser.</p>
-        <ul class="checks">
-          <li>AI picks the highlights for you</li>
-          <li>Auto captions, synced word by word</li>
-          <li>CapCut-style trim timeline — drag to choose any part</li>
-          <li>Edit &amp; re-render every clip before you download</li>
-          <li>Your video never leaves your device</li>
-        </ul>
-        <a href="/shortify/" class="btn btn-primary">Try Shortify free →</a>
+        <p>Upload a video and Shortify cuts it into vertical shorts and burns in word-by-word captions — all inside your browser, nothing to install.</p>
+        <div class="chips">
+          <span class="chip">Word-by-word captions</span>
+          <span class="chip">35 caption styles</span>
+          <span class="chip">CapCut-style trimmer</span>
+          <span class="chip">Per-clip editing</span>
+          <span class="chip">100% in your browser</span>
+          <span class="chip">AI best-moment picking (Pro)</span>
+        </div>
+        <div class="fbtns">
+          <a href="/shortify/" class="btn btn-primary">Open Shortify — free →</a>
+          <a href="/shortify/" class="btn btn-ghost">See Pro plans</a>
+        </div>
       </div>
       <div class="shot" aria-hidden="true">
         <div class="fake">
@@ -146,32 +163,72 @@
   </div>
 </section>
 
-<section class="sec" id="why" style="padding-top:10px">
+<section class="sec" id="downloader" style="padding-top:0">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Choose your path</span>
-      <h2>What are you here for?</h2>
-      <p>Start with the tool that matches what you need today.</p>
+    <div class="feature rev">
+      <div class="shot" aria-hidden="true">
+        <div class="fake">
+          <div class="dlr"><div class="t"><span>🎬 travel-vlog-episode-12.mp4</span><b>100%</b></div><div class="p"><i style="width:100%"></i></div></div>
+          <div class="dlr"><div class="t"><span>🎵 tiktok-reel-2941.mp4</span><b>78%</b></div><div class="p"><i style="width:78%"></i></div></div>
+          <div class="dlr"><div class="t"><span>📸 insta-profile — 24 reels</span><b>41%</b></div><div class="p"><i style="width:41%"></i></div></div>
+        </div>
+      </div>
+      <div>
+        <span class="eyebrow">⬇️ Bulk Downloader — desktop app</span>
+        <h2>Download videos &amp; reels in bulk.</h2>
+        <p>Paste single links or whole profiles and get your files — pick the quality, hit download, done. A free Windows desktop app built for speed.</p>
+        <div class="chips">
+          <span class="chip">YouTube · TikTok · Instagram · Pinterest</span>
+          <span class="chip">Bulk links &amp; full profiles</span>
+          <span class="chip">Quality picker</span>
+          <span class="chip">Auto-updates</span>
+          <span class="chip">Free Windows app</span>
+        </div>
+        <div class="fbtns">
+          <a href="https://downloader.clipcutstudio.co/downloads/clipcut-updates/ClipCut-Studio-Downloader-Setup-1.5.0.exe" class="btn btn-primary">Download for Windows →</a>
+          <a href="https://downloader.clipcutstudio.co" class="btn btn-ghost">Try the web version</a>
+        </div>
+      </div>
     </div>
-    <div class="paths">
-      <div class="path">
-        <div class="num">01</div>
-        <h3>I want to make shorts</h3>
-        <p>Turn long videos into vertical shorts with auto captions — free, right in your browser with Shortify.</p>
-        <a href="/shortify/">Open Shortify →</a>
+  </div>
+</section>
+
+<section class="sec" id="uploader" style="padding-top:0">
+  <div class="wrap">
+    <div class="feature">
+      <div>
+        <span class="eyebrow">📤 Bulk Uploader — auto-posting</span>
+        <h2>Auto-post to all your Facebook Pages.</h2>
+        <p>Schedule videos, Reels, Stories and images to multiple Pages and accounts, hands-free — daily posting that runs on your own Windows PC or VPS.</p>
+        <div class="chips">
+          <span class="chip">Multi-account · multi-Page</span>
+          <span class="chip">Daily scheduled posting</span>
+          <span class="chip">Reels · videos · images · stories</span>
+          <span class="chip">Captions from file names</span>
+          <span class="chip">Google Drive source</span>
+          <span class="chip">Page analytics &amp; monetization view</span>
+        </div>
+        <div class="fbtns">
+          <a href="/uploader/" class="btn btn-primary">Get the app →</a>
+          <a href="/uploader/tutorial.html" class="btn btn-ghost">Watch tutorial</a>
+        </div>
       </div>
-      <div class="path">
-        <div class="num">02</div>
-        <h3>I need to download content</h3>
-        <p>Grab videos and reels in bulk from YouTube, TikTok, Instagram and Pinterest — a free Windows desktop app.</p>
-        <a href="https://downloader.clipcutstudio.co/downloads/clipcut-updates/ClipCut-Studio-Downloader-Setup-1.5.0.exe">Download for Windows →</a>
+      <div class="shot" aria-hidden="true">
+        <div class="fake">
+          <div class="upr"><span>📄 Funny Clips HD</span><span class="st">Posted · 9:00 AM</span></div>
+          <div class="upr"><span>📄 Daily Drama Scenes</span><span class="st">Posted · 9:05 AM</span></div>
+          <div class="upr"><span>📄 Viral Shorts Hub</span><span class="st q">Queued · 9:10 AM</span></div>
+        </div>
       </div>
-      <div class="path">
-        <div class="num">03</div>
-        <h3>I want hands-free posting</h3>
-        <p>Schedule and auto-post videos and reels to multiple Facebook Pages with the Bulk Uploader desktop app.</p>
-        <a href="/uploader/">Get the app →</a>
-      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="why" style="padding-top:0;padding-bottom:0">
+  <div class="wrap">
+    <div class="band" style="padding:34px 30px">
+      <h2 style="font-size:clamp(20px,2.6vw,26px)">🚀 More tools on the way</h2>
+      <p style="margin-bottom:0">ClipCut Studio keeps growing — a full clip editor and more creator tools are in the works, and they all land right here first.</p>
     </div>
   </div>
 </section>
