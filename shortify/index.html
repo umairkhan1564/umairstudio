@@ -15,12 +15,12 @@
 <meta name="description" content="Turn long videos into ready-to-post vertical shorts with auto captions — free, right in your browser.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
 <style>
-  :root{--bg:#0b0917;--card:#161228;--line:#2a2444;--fg:#f1effb;--mut:#a9a4c8;--accent:#8b5cff;--accent2:#b264ff;--cta:#f97316;--cta2:#fb923c;--green:#22c55e}
+  :root{--bg:#faf9ff;--card:#ffffff;--line:#e7e2f5;--fg:#1b1433;--mut:#6b6486;--accent:#7c3aed;--accent2:#a855f7;--cta:#7c3aed;--cta2:#a855f7;--green:#16a34a}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--fg);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.6}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:960px;margin:0 auto;padding:0 20px}
-  header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(10,11,20,.8);backdrop-filter:blur(10px);z-index:20}
+  header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(250,249,255,.88);backdrop-filter:blur(10px);z-index:20}
   nav{display:flex;align-items:center;justify-content:space-between;height:62px}
   .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:18px}
   .logo .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:16px}
@@ -29,24 +29,24 @@
   .lead{color:var(--mut);text-align:center;margin-bottom:32px;font-size:17px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:20px}
   .drop{border:2px dashed var(--line);border-radius:14px;padding:44px 20px;text-align:center;cursor:pointer;transition:.18s}
-  .drop:hover{border-color:var(--accent);background:rgba(124,92,255,.05)}
+  .drop:hover{border-color:var(--accent);background:rgba(124,58,237,.05)}
   .drop .big{font-size:40px;margin-bottom:10px}
   .drop .t{font-weight:600;font-size:17px}
   .drop .s{color:var(--mut);font-size:14px;margin-top:4px}
   .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:20px}
   label{display:block;font-size:13px;color:var(--mut);margin-bottom:6px}
-  select,input{width:100%;background:#0c0d1a;color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;font-family:inherit}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px;padding:13px 22px;border-radius:11px;border:0;cursor:pointer;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;width:100%;margin-top:20px;transition:.18s}
+  select,input{width:100%;background:#ffffff;color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;font-family:inherit}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px;padding:13px 22px;border-radius:11px;border:0;cursor:pointer;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;width:100%;margin-top:20px;transition:.18s}
   .btn:hover{filter:brightness(1.1)} .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
   .prog{display:none;margin-top:22px}
-  .bar{height:8px;background:#0c0d1a;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+  .bar{height:8px;background:#eee9f8;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
   .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s}
   .stage{font-size:14px;color:var(--mut);margin-top:10px;text-align:center}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:8px}
   .clip{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
   .clip video{width:100%;border-radius:9px;background:#000;aspect-ratio:9/16;object-fit:contain}
   .clip .cap{font-size:13px;margin:8px 2px;color:var(--fg)}
-  .clip a{display:block;text-align:center;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:600;font-size:14px;margin-top:6px}
+  .clip a{display:block;text-align:center;background:rgba(25,18,51,.04);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:600;font-size:14px;margin-top:6px}
   .clip a:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
   .clip .ebtn{width:100%;margin-top:6px;background:transparent;color:var(--mut);border:1px solid var(--line);border-radius:9px;padding:8px;font-size:13px;font-weight:600;cursor:pointer}
   .clip .ebtn:hover{color:var(--fg);border-color:var(--accent)}
@@ -54,24 +54,24 @@
   .edit .row2{display:flex;gap:8px}
   .edit .row2>div{flex:1}
   .edit label{font-size:11px;color:var(--mut);margin-bottom:3px}
-  .edit input,.edit select{width:100%;background:#0c0d1a;color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px;font-size:13px}
-  .edit .rr{width:100%;margin-top:8px;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;border:0;border-radius:8px;padding:9px;font-weight:600;font-size:13px;cursor:pointer}
+  .edit input,.edit select{width:100%;background:#ffffff;color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px;font-size:13px}
+  .edit .rr{width:100%;margin-top:8px;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;border:0;border-radius:8px;padding:9px;font-weight:600;font-size:13px;cursor:pointer}
   .edit .spin{font-size:12px;color:var(--accent2);text-align:center;margin-top:6px}
-  .note{background:rgba(124,92,255,.08);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--mut);margin-top:16px}
+  .note{background:rgba(124,58,237,.06);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--mut);margin-top:16px}
   .hidden{display:none}
   #preview{width:100%;max-height:300px;border-radius:10px;background:#000;margin-top:14px}
   .trim{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
   .trim .r{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
   .trim .fld label{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}
-  .trim input{width:90px;background:#0c0d1a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:14px}
-  .mini{background:rgba(255,255,255,.06);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer}
+  .trim input{width:90px;background:#ffffff;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:14px}
+  .mini{background:rgba(25,18,51,.04);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer}
   .mini:hover{border-color:var(--accent)}
   .trim .hint{font-size:12px;color:var(--mut);margin-top:8px}
   .tl{position:relative;height:56px;margin:12px 0 0;user-select:none;touch-action:none}
   .tl-track{position:absolute;inset:0;background:#0c0d1a;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex}
   .tl-track canvas{height:100%;flex:1;display:block;min-width:0}
   .tl-cur{position:absolute;top:-4px;bottom:-4px;width:2px;background:#fff;pointer-events:none;opacity:.9;border-radius:2px}
-  .tl-sel{position:absolute;top:0;bottom:0;border:2px solid var(--accent);border-radius:8px;background:rgba(124,92,255,.22);cursor:grab;box-shadow:0 0 12px rgba(124,92,255,.35)}
+  .tl-sel{position:absolute;top:0;bottom:0;border:2px solid var(--accent);border-radius:8px;background:rgba(124,58,237,.22);cursor:grab;box-shadow:0 0 12px rgba(124,58,237,.35)}
   .tl-sel:active{cursor:grabbing}
   .tl-h{position:absolute;top:-2px;bottom:-2px;width:14px;background:var(--accent);cursor:ew-resize;display:grid;place-items:center;z-index:2}
   .tl-h::after{content:'';width:3px;height:18px;border-radius:2px;background:#fff}
@@ -79,12 +79,12 @@
   .tl-hr{right:-8px;border-radius:0 8px 8px 0}
   .tl-times{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-top:6px}
   .tl-times b{color:var(--accent2);font-weight:600}
-  .mo{position:fixed;inset:0;background:rgba(5,6,12,.72);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:50}
+  .mo{position:fixed;inset:0;background:rgba(20,14,40,.45);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:50}
   .mo.hidden{display:none}
   .mob{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:380px;width:calc(100% - 40px);text-align:center;position:relative}
   .mob h3{font-size:20px;margin-bottom:10px}
   .mob p{color:var(--mut);font-size:14px;margin-bottom:18px}
-  .mob .mbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px;padding:11px 20px;border-radius:10px;border:0;cursor:pointer;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;width:100%}
+  .mob .mbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px;padding:11px 20px;border-radius:10px;border:0;cursor:pointer;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;width:100%}
   .mob .mx{position:absolute;top:10px;right:14px;background:none;border:0;color:var(--mut);font-size:18px;cursor:pointer}
   .mob .mx:hover{color:var(--fg)}
   #authSlot{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
@@ -92,7 +92,7 @@
   #authSlot button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--mut);padding:5px 10px;font-size:12px;cursor:pointer}
   #authSlot button:hover{color:var(--fg);border-color:var(--accent)}
   .cappv{margin-top:14px;background:linear-gradient(135deg,#151027,#0c0d1a);border:1px solid var(--line);border-radius:12px;height:96px;display:grid;place-items:center;overflow:hidden;position:relative}
-  .cappv .tag{position:absolute;top:8px;left:10px;font-size:11px;color:var(--mut)}
+  .cappv .tag{position:absolute;top:8px;left:10px;font-size:11px;color:#b9b3d1}
   .cappv .propill{position:absolute;top:8px;right:10px;font-size:11px;color:var(--cta2);font-weight:700}
   #capPrevTxt{font-weight:800;letter-spacing:.5px;white-space:nowrap}
   @keyframes pvPop{0%{transform:translateY(16px) scale(.7);opacity:0}28%,100%{transform:none;opacity:1}}
@@ -121,9 +121,9 @@
   .capstrip{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}
   .cst{position:relative;flex:0 0 auto;width:104px;height:74px;background:#0c0d1a;border:2px solid var(--line);border-radius:11px;display:grid;place-items:center;cursor:pointer;overflow:hidden;transition:border-color .15s}
   .cst:hover{border-color:var(--accent)}
-  .cst.sel{border-color:var(--cta);box-shadow:0 0 0 2px rgba(249,115,22,.35)}
+  .cst.sel{border-color:var(--cta);box-shadow:0 0 0 2px rgba(124,58,237,.35)}
   .cst .cstx{white-space:nowrap;pointer-events:none;margin-bottom:10px}
-  .cst .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(5,6,12,.78);font-style:normal;font-size:9.5px;color:var(--mut);text-align:center;padding:2px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cst .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(5,6,12,.78);font-style:normal;font-size:9.5px;color:#cfc9e4;text-align:center;padding:2px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cst .gem{position:absolute;top:4px;left:6px;font-size:11px;font-style:normal;z-index:2}
 </style>
 <script type="importmap">
@@ -231,7 +231,7 @@
   <h3 style="text-align:center;margin-bottom:4px">✨ Upgrade to Shortify Pro</h3>
   <p style="color:var(--mut);font-size:13.5px;text-align:center;margin-bottom:18px">Animated captions, AI best-moment picking, HD &amp; unlimited use.</p>
   <div style="display:grid;gap:12px">
-    <div style="border:1px solid var(--line);border-radius:12px;padding:16px;background:#0c0d1a">
+    <div style="border:1px solid var(--line);border-radius:12px;padding:16px;background:#f6f4fc">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Basic</b><b style="font-size:20px">$5<small style="color:var(--mut);font-size:12px;font-weight:400">/mo</small></b></div>
       <ul style="list-style:none;margin-top:10px;display:grid;gap:6px;font-size:13px;color:var(--mut)">
         <li>⭐ All animated caption styles (karaoke, pop, bounce…)</li>
@@ -242,8 +242,8 @@
         <li>✅ Ad-free</li>
       </ul>
     </div>
-    <div style="border:2px solid var(--cta);border-radius:12px;padding:16px;background:#0c0d1a;position:relative">
-      <span style="position:absolute;top:-10px;right:14px;background:var(--cta);color:#2a1404;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px">BEST VALUE</span>
+    <div style="border:2px solid var(--cta);border-radius:12px;padding:16px;background:#f6f4fc;position:relative">
+      <span style="position:absolute;top:-10px;right:14px;background:var(--cta);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px">BEST VALUE</span>
       <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Pro</b><b style="font-size:20px">$10<small style="color:var(--mut);font-size:12px;font-weight:400">/mo</small></b></div>
       <ul style="list-style:none;margin-top:10px;display:grid;gap:6px;font-size:13px;color:var(--mut)">
         <li>✅ Everything in Basic</li>
@@ -261,9 +261,9 @@
       2. Send the payment screenshot + your account email below to <b style="color:var(--fg)" id="payContact">—</b><br>
       3. Your account is upgraded within a few hours ✨
     </div>
-    <div style="margin-top:12px;background:#0c0d1a;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:12.5px">Your account: <b style="color:var(--cta2)" id="upEmail">—</b></div>
+    <div style="margin-top:12px;background:#f6f4fc;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:12.5px">Your account: <b style="color:var(--cta2)" id="upEmail">—</b></div>
   </div>
-  <button class="mbtn" id="upClose" style="margin-top:16px;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;border:0;border-radius:10px;padding:11px;width:100%;font-weight:700;cursor:pointer">Got it</button>
+  <button class="mbtn" id="upClose" style="margin-top:16px;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;border:0;border-radius:10px;padding:11px;width:100%;font-weight:700;cursor:pointer">Got it</button>
 </div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -321,11 +321,11 @@ function renderAuth(){
   if(USER){
     const name = (USER.displayName||USER.email||'').split(' ')[0];
     const badge = PRO_ACTIVE
-      ? `<span style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">✨ ${PRO_PLAN==='pro'?'PRO':'BASIC'}</span>`
-      : `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;font-weight:700;border:0">✨ Upgrade</button>`;
+      ? `<span style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">✨ ${PRO_PLAN==='pro'?'PRO':'BASIC'}</span>`
+      : `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;font-weight:700;border:0">✨ Upgrade</button>`;
     el.innerHTML = `${badge} <img src="${USER.photoURL||''}" alt=""> <span>${name}</span> <button id="signOut">Sign out</button>`;
   } else {
-    el.innerHTML = `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#2a1404;font-weight:700;border:0">✨ Upgrade</button> <button id="signIn">Sign in</button>`;
+    el.innerHTML = `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;font-weight:700;border:0">✨ Upgrade</button> <button id="signIn">Sign in</button>`;
   }
   const so = $('signOut'), si = $('signIn'), gp = $('goPro');
   if(so) so.onclick = () => firebase.auth().signOut();
