@@ -118,7 +118,10 @@
   @font-face{font-family:'CCLucky';src:url('/vendor/fonts/LuckiestGuy.ttf');font-display:swap}
   @font-face{font-family:'CCArchivo';src:url('/vendor/fonts/ArchivoBlack.ttf');font-display:swap}
   @font-face{font-family:'CCMarker';src:url('/vendor/fonts/Marker.ttf');font-display:swap}
-  .capstrip{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}
+  .capstrip{max-height:460px;overflow-y:auto;padding-right:4px}
+  .capcat{font-size:12.5px;font-weight:700;color:var(--fg);margin:12px 0 2px}
+  .capcat small{color:var(--mut);font-weight:400;font-size:11px}
+  .caprow{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}
   .cst{position:relative;flex:0 0 auto;width:104px;height:74px;background:#0c0d1a;border:2px solid var(--line);border-radius:11px;display:grid;place-items:center;cursor:pointer;overflow:hidden;transition:border-color .15s}
   .cst:hover{border-color:var(--accent)}
   .cst.sel{border-color:var(--cta);box-shadow:0 0 0 2px rgba(249,115,22,.35)}
@@ -376,44 +379,58 @@ const FONTS = {
   archivo: {file:'/vendor/fonts/ArchivoBlack.ttf', fam:"'CCArchivo',sans-serif"},
   marker:  {file:'/vendor/fonts/Marker.ttf',       fam:"'CCMarker',cursive"},
 };
-const CAP_STYLES = {
-  'Bold White':    {f:'dejavu', p:'fontsize=54:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Impact Tall':   {f:'anton',  p:'fontsize=60:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Comic Pop':     {f:'bangers',p:'fontsize=62:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Chunky':        {f:'lucky',  p:'fontsize=56:fontcolor=white:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Heavy Black':   {f:'archivo',p:'fontsize=52:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Marker':        {f:'marker', p:'fontsize=52:fontcolor=white:borderw=5:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Classic Yellow':{f:'dejavu', p:'fontsize=54:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Tall Yellow':   {f:'anton',  p:'fontsize=60:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Comic Green':   {f:'bangers',p:'fontsize=62:fontcolor=0x2bff88:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Chunky Pink':   {f:'lucky',  p:'fontsize=56:fontcolor=0xff5fd2:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Heavy Orange':  {f:'archivo',p:'fontsize=52:fontcolor=0xff9a2e:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Marker Gold':   {f:'marker', p:'fontsize=52:fontcolor=0xffd700:borderw=5:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Tall Red':      {f:'anton',  p:'fontsize=60:fontcolor=0xff4d4d:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Cool Blue':     {f:'dejavu', p:'fontsize=54:fontcolor=0x5fa8ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Tall Cyan':     {f:'anton',  p:'fontsize=60:fontcolor=0x35e0ff:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'TikTok Thick':  {f:'dejavu', p:'fontsize=56:fontcolor=white:borderw=12:bordercolor=black'},
-  'Boxed Black':   {f:'dejavu', p:'fontsize=50:fontcolor=white:box=1:boxcolor=black@0.72:boxborderw=18'},
-  'Boxed White':   {f:'archivo',p:'fontsize=48:fontcolor=black:box=1:boxcolor=white@0.9:boxborderw=16'},
-  'Boxed Yellow':  {f:'anton',  p:'fontsize=52:fontcolor=black:box=1:boxcolor=yellow@0.92:boxborderw=16'},
-  'Minimal':       {f:'dejavu', p:'fontsize=44:fontcolor=white:borderw=3:bordercolor=black@0.7'},
-};
-// PRO = the special stuff: word-by-word karaoke + animated motion (drawtext
-// t-based x/y/alpha expressions). words:1 = one word at a time on screen.
-const ANIM_STYLES = {
-  'Karaoke Yellow': {f:'anton',  words:1, anim:'pop',   p:'fontsize=64:fontcolor=yellow:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Karaoke Comic':  {f:'bangers',words:1, anim:'pop',   p:'fontsize=66:fontcolor=0x2bff88:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Word Pop':       {f:'archivo',words:1, anim:'pop',   p:'fontsize=62:fontcolor=white:borderw=8:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Highlight Box':  {f:'archivo',words:1, anim:'pop',   p:'fontsize=54:fontcolor=white:box=1:boxcolor=0x8b5cff@0.95:boxborderw=14'},
-  'Bounce':         {f:'lucky',  words:2, anim:'bounce',p:'fontsize=56:fontcolor=white:borderw=7:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Slide Up':       {f:'anton',  words:2, anim:'slide', p:'fontsize=58:fontcolor=white:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Shake Energy':   {f:'bangers',words:2, anim:'shake', p:'fontsize=60:fontcolor=yellow:borderw=6:bordercolor=black:shadowcolor=black@0.6:shadowx=2:shadowy=2'},
-  'Fade Glow':      {f:'dejavu', words:2, anim:'fade',  p:'fontsize=56:fontcolor=white:borderw=6:bordercolor=0x8b5cff@0.85:shadowcolor=0x8b5cff@0.6:shadowx=0:shadowy=3'},
-  'Neon Pulse':     {f:'anton',  words:2, anim:'pulse', p:'fontsize=60:fontcolor=0x35e0ff:borderw=6:bordercolor=black:shadowcolor=0x35e0ff@0.5:shadowx=0:shadowy=3'},
-  'Green Screen':   {f:'dejavu', words:2, anim:null,    p:'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16'},
-};
+// ~330 styles are GENERATED from a recipe matrix: 6 fonts x 12 colors x looks
+// (outline / thick / glow / boxed) + karaoke & motion variants. cat drives the
+// category rows in the picker. FREE = the whole Classic row; the special looks
+// (thick/glow/boxed) and everything animated are Pro.
+const COLORS = { White:'white', Yellow:'yellow', Gold:'0xffd700', Orange:'0xff9a2e', Red:'0xff4d4d',
+  Pink:'0xff5fd2', Purple:'0xb264ff', Blue:'0x5fa8ff', Cyan:'0x35e0ff', Green:'0x2bff88', Lime:'0xc8ff3d', Mint:'0x2dd4bf' };
+const DARK_BOX = ['Purple','Red','Blue'];   // box colors that need white text
+const FONT_META = { dejavu:{n:'Bold',s:54}, anton:{n:'Tall',s:60}, bangers:{n:'Comic',s:62},
+  lucky:{n:'Chunky',s:56}, archivo:{n:'Heavy',s:52}, marker:{n:'Marker',s:52} };
+const SHDW = 'shadowcolor=black@0.6:shadowx=2:shadowy=2';
+const CAP_STYLES = {}, ANIM_STYLES = {};
+(function genStyles(){
+  for(const [fk, fm] of Object.entries(FONT_META)){
+    for(const [cn, cv] of Object.entries(COLORS)){
+      CAP_STYLES[`${fm.n} ${cn}`] = {f:fk, cat:'classic',
+        p:`fontsize=${fm.s}:fontcolor=${cv}:borderw=6:bordercolor=black:${SHDW}`};
+      CAP_STYLES[`${fm.n} ${cn} Glow`] = {f:fk, cat:'glow',
+        p:`fontsize=${fm.s}:fontcolor=white:borderw=7:bordercolor=${cv}@0.9:shadowcolor=${cv}@0.45:shadowx=0:shadowy=4`};
+      CAP_STYLES[`${fm.n} ${cn} Box`] = {f:fk, cat:'boxed',
+        p:`fontsize=${fm.s-4}:fontcolor=${DARK_BOX.includes(cn)?'white':'black'}:box=1:boxcolor=${cv}@0.92:boxborderw=14`};
+      if(fk==='dejavu' || fk==='anton' || fk==='archivo')
+        CAP_STYLES[`${fm.n} ${cn} Thick`] = {f:fk, cat:'thick',
+          p:`fontsize=${fm.s}:fontcolor=${cv}:borderw=11:bordercolor=black`};
+    }
+  }
+  CAP_STYLES['Minimal']      = {f:'dejavu', cat:'classic', p:'fontsize=44:fontcolor=white:borderw=3:bordercolor=black@0.7'};
+  CAP_STYLES['TikTok Thick'] = {f:'dejavu', cat:'classic', p:'fontsize=56:fontcolor=white:borderw=12:bordercolor=black'};
+  // karaoke: one word at a time, pops with the voice
+  const KAR_COLORS = ['White','Yellow','Green','Cyan','Pink','Orange'];
+  for(const [fk, fm] of Object.entries(FONT_META))
+    for(const cn of KAR_COLORS)
+      ANIM_STYLES[`${fm.n} ${cn} Karaoke`] = {f:fk, cat:'karaoke', words:1, anim:'pop',
+        p:`fontsize=${fm.s+6}:fontcolor=${COLORS[cn]}:borderw=7:bordercolor=black:${SHDW}`};
+  for(const cn of ['Purple','Yellow','Red','Blue','Green','Pink'])
+    ANIM_STYLES[`Highlight ${cn}`] = {f:'archivo', cat:'karaoke', words:1, anim:'pop',
+      p:`fontsize=52:fontcolor=${DARK_BOX.includes(cn)?'white':'black'}:box=1:boxcolor=${COLORS[cn]}@0.95:boxborderw=14`};
+  // motion: animated 2-word lines
+  const MOTION = { Bounce:{f:'lucky',anim:'bounce'}, Slide:{f:'anton',anim:'slide'}, Shake:{f:'bangers',anim:'shake'},
+    Fade:{f:'dejavu',anim:'fade'}, Pulse:{f:'anton',anim:'pulse'} };
+  for(const [mn, m] of Object.entries(MOTION))
+    for(const cn of KAR_COLORS){
+      const fm = FONT_META[m.f];
+      ANIM_STYLES[`${mn} ${cn}`] = {f:m.f, cat:'motion', words:2, anim:m.anim,
+        p:`fontsize=${fm.s}:fontcolor=${COLORS[cn]}:borderw=6:bordercolor=black:${SHDW}`};
+    }
+  ANIM_STYLES['Green Screen'] = {f:'dejavu', cat:'motion', words:2, anim:null,
+    p:'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16'};
+})();
+const CAT_LABELS = [ ['classic','Classic — Free'], ['thick','Thick outline 💎'], ['glow','Neon glow 💎'],
+  ['boxed','Boxed 💎'], ['karaoke','Karaoke — word by word 💎'], ['motion','Animated 💎'] ];
 const CAP_KEYS = [...Object.keys(CAP_STYLES), ...Object.keys(ANIM_STYLES)];
-const FREE_STYLES = [...Object.keys(CAP_STYLES), 'off'];
+const FREE_STYLES = [...Object.keys(CAP_STYLES).filter(k => CAP_STYLES[k].cat === 'classic'), 'off'];
 const isPro = () => PRO_ACTIVE;
 const styleLabel = (v, lock) => v==='off' ? 'No captions'
   : (lock ? '🔒 ' : '') + v + (ANIM_STYLES[v] ? ' ⭐' : '') + (lock ? ' — Pro' : '');
@@ -424,12 +441,14 @@ const styleLabel = (v, lock) => v==='off' ? 'No captions'
   [...CAP_KEYS, 'off'].forEach(v => sel.append(new Option(v, v)));
   sel.value = 'Bold White';
 })();
-// Vizard-style template strip: every tile is a live mini-preview of its style
-// (fonts via @font-face, Pro tiles animate + carry a 💎).
+// Vizard-style template picker: one horizontal row PER category, every tile a
+// live mini-preview of its style (real fonts, Pro tiles animate + carry a 💎).
+// All karaoke tiles share ONE ticker so ~40 of them stay cheap.
+const KAR_TILES = [];
 function buildCapStrip(){
   const sel = $('caps'), strip = $('capStrip'); if(!strip) return;
-  strip.innerHTML = '';
-  const mk = (v, label) => {
+  strip.innerHTML = ''; KAR_TILES.length = 0;
+  const mk = (row, v, label) => {
     const d = document.createElement('div'); d.className = 'cst'; d.dataset.v = v;
     d.innerHTML = `<span class="cstx"></span><i class="nm">${label}</i>` +
       (FREE_STYLES.includes(v) ? '' : '<i class="gem">💎</i>');
@@ -439,23 +458,35 @@ function buildCapStrip(){
       applyCapLook(sp, v, 0.30);
       sp.classList.add('cstx');   // applyCapLook resets className — keep the tile styling
       const anim = ANIM_STYLES[v];
-      if(anim && anim.words === 1){
-        const W = ['POP','WORD','STYLE']; let i = 0; sp.textContent = W[0];
-        setInterval(() => { i = (i+1) % W.length; sp.textContent = W[i];
-          if(anim.anim){ sp.classList.remove('pv-'+anim.anim); void sp.offsetWidth; sp.classList.add('pv-'+anim.anim); } }, 650);
-      } else sp.textContent = 'THE QUICK';
+      if(anim && anim.words === 1){ sp.textContent = 'POP'; KAR_TILES.push({sp, anim: anim.anim}); }
+      else sp.textContent = 'THE QUICK';
     }
     d.onclick = () => { sel.value = v; sel.dispatchEvent(new Event('change')); markCapSel(); };
-    strip.appendChild(d);
+    row.appendChild(d);
   };
-  mk('Bold White', 'Default');
-  CAP_KEYS.filter(v => v !== 'Bold White').forEach(v => mk(v, v));
-  mk('off', 'None');
+  for(const [cat, label] of CAT_LABELS){
+    const keys = CAP_KEYS.filter(v => (ANIM_STYLES[v] || CAP_STYLES[v]).cat === cat);
+    if(!keys.length) continue;
+    const h = document.createElement('div'); h.className = 'capcat';
+    h.innerHTML = `${label} <small>${keys.length} styles</small>`;
+    const row = document.createElement('div'); row.className = 'caprow';
+    strip.append(h, row);
+    if(cat === 'classic'){ mk(row, 'off', 'None'); mk(row, 'Bold White', 'Default'); }
+    keys.filter(v => !(cat === 'classic' && v === 'Bold White')).forEach(v => mk(row, v, v));
+  }
   markCapSel();
 }
+const KAR_WORDS = ['POP','WORD','BY','WORD']; let karI = 0;
+setInterval(() => {
+  karI = (karI + 1) % KAR_WORDS.length;
+  for(const k of KAR_TILES){
+    k.sp.textContent = KAR_WORDS[karI];
+    if(k.anim){ k.sp.classList.remove('pv-'+k.anim); void k.sp.offsetWidth; k.sp.classList.add('pv-'+k.anim); }
+  }
+}, 650);
 function markCapSel(){
   const strip = $('capStrip'), v = $('caps').value; if(!strip) return;
-  [...strip.children].forEach(c => c.classList.toggle('sel', c.dataset.v === v));
+  strip.querySelectorAll('.cst').forEach(c => c.classList.toggle('sel', c.dataset.v === v));
 }
 
 // ---------- Live style preview (so users SEE the caption look before rendering) ----------
@@ -476,7 +507,11 @@ function applyCapLook(sp, name, scale){
   sp.style.color = pvCol(get('fontcolor'));
   if(get('box') === '1'){ sp.style.background = pvCol(get('boxcolor')); sp.style.padding = '.08em .3em'; sp.style.borderRadius = '.1em'; }
   else { const s = Math.max(1, Math.round((parseInt(get('borderw'))||4) * scale * 0.82));
-    sp.style.textShadow = `-${s}px 0 #000,${s}px 0 #000,0 -${s}px #000,0 ${s}px #000,${s}px ${s}px #000,-${s}px ${s}px #000`; }
+    const bc = pvCol(get('bordercolor')) || '#000';
+    const b = bc === 'black' ? '#000' : bc;
+    let sh = `-${s}px 0 ${b},${s}px 0 ${b},0 -${s}px ${b},0 ${s}px ${b},${s}px ${s}px ${b},-${s}px ${s}px ${b}`;
+    if(b !== '#000') sh += `,0 0 ${s*4}px ${b}`;   // colored border = neon glow feel
+    sp.style.textShadow = sh; }
   if(anim && anim.anim) sp.classList.add('pv-' + anim.anim);
   return { anim: anim ? anim.anim : null, words: anim ? (anim.words||2) : 2 };
 }
