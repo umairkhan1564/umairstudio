@@ -109,6 +109,9 @@
   .pv-pulse{animation:pvPulse 1s infinite}
   #quota{text-align:center;font-size:12.5px;color:var(--mut);margin-top:9px}
   #quota a{color:var(--cta2);font-weight:600;cursor:pointer}
+  .pwrap{position:relative}
+  #vidCap{position:absolute;left:0;right:0;bottom:20%;display:none;justify-content:center;pointer-events:none;z-index:5;text-align:center}
+  #vidCapTxt{font-weight:800;letter-spacing:.5px;white-space:nowrap;display:inline-block}
 </style>
 <script type="importmap">
 { "imports": {
@@ -136,7 +139,10 @@
     </div>
 
     <div id="trimWrap" class="hidden">
-      <video id="preview" controls preload="metadata"></video>
+      <div class="pwrap">
+        <video id="preview" controls preload="metadata"></video>
+        <div id="vidCap"><span id="vidCapTxt"></span></div>
+      </div>
       <div class="tl" id="tl">
         <div class="tl-track" id="tlTrack"></div>
         <div class="tl-cur" id="tlCur" style="left:0"></div>
@@ -402,33 +408,62 @@ const styleLabel = (v, lock) => v==='off' ? 'No captions'
 
 // ---------- Live style preview (so users SEE the caption look before rendering) ----------
 const pvCol = c => { if(!c) return '#fff'; c = c.replace(/@[\d.]+$/,''); return c.startsWith('0x') ? '#'+c.slice(2) : c; };
-function updateCapPreview(name){
-  const box = $('capPrev'), sp = $('capPrevTxt'); if(!box || !sp) return;
-  clearInterval(box._iv);
-  box.querySelector('.propill').style.display = FREE_STYLES.includes(name) ? 'none' : 'block';
+// Styles a span to mimic a caption style; scale maps the 720x1280 drawtext
+// sizes to the element (0.55 for the preview box, video-height/1280 for the
+// on-video layer). Returns {anim, words} so callers can animate/cycle.
+function applyCapLook(sp, name, scale){
   sp.className = ''; sp.removeAttribute('style');
-  if(name === 'off'){ sp.textContent = '(no captions)'; sp.style.color = 'var(--mut)'; sp.style.fontSize = '14px'; sp.style.fontWeight = '400'; return; }
+  if(name === 'off') return null;
   const anim = ANIM_STYLES[name];
   const params = anim ? anim.base : (CAP_STYLES[name] || '');
   const get = k => { const m = params.match(new RegExp(k + '=([^:]+)')); return m ? m[1] : null; };
   const fs = parseInt(get('fontsize')) || 54;
-  sp.style.fontSize = Math.round(fs * 0.55) + 'px';
+  sp.style.fontSize = Math.max(11, Math.round(fs * scale)) + 'px';
   sp.style.color = pvCol(get('fontcolor'));
-  if(get('box') === '1'){ sp.style.background = pvCol(get('boxcolor')); sp.style.padding = '4px 12px'; sp.style.borderRadius = '4px'; }
-  else { const s = Math.max(1, Math.round((parseInt(get('borderw'))||4) * 0.45));
+  if(get('box') === '1'){ sp.style.background = pvCol(get('boxcolor')); sp.style.padding = '.08em .3em'; sp.style.borderRadius = '.1em'; }
+  else { const s = Math.max(1, Math.round((parseInt(get('borderw'))||4) * scale * 0.82));
     sp.style.textShadow = `-${s}px 0 #000,${s}px 0 #000,0 -${s}px #000,0 ${s}px #000,${s}px ${s}px #000,-${s}px ${s}px #000`; }
   if(anim && anim.anim) sp.classList.add('pv-' + anim.anim);
-  const cycle = anim && anim.words === 1;
+  return { anim: anim ? anim.anim : null, words: anim ? (anim.words||2) : 2 };
+}
+function updateCapPreview(name){
+  const box = $('capPrev'), sp = $('capPrevTxt'); if(!box || !sp) return;
+  clearInterval(box._iv);
+  box.querySelector('.propill').style.display = FREE_STYLES.includes(name) ? 'none' : 'block';
+  const info = applyCapLook(sp, name, 0.55);
+  if(!info){ sp.textContent = '(no captions)'; sp.style.color = 'var(--mut)'; sp.style.fontSize = '14px'; sp.style.fontWeight = '400'; return; }
+  const cycle = info.words === 1;
   const W = ['CAPTIONS','THAT','POP','ON','SCREEN']; let wi = 0;
   sp.textContent = cycle ? W[0] : 'YOUR CAPTIONS HERE';
   if(cycle) box._iv = setInterval(() => {
     wi = (wi+1) % W.length; sp.textContent = W[wi];
-    if(anim.anim){ sp.classList.remove('pv-'+anim.anim); void sp.offsetWidth; sp.classList.add('pv-'+anim.anim); }
+    if(info.anim){ sp.classList.remove('pv-'+info.anim); void sp.offsetWidth; sp.classList.add('pv-'+info.anim); }
   }, 600);
 }
+// Caption layer ON the video preview — cycles sample lines in the chosen style
+// so users see exactly how captions will land on their video.
+function updateVidCap(name){
+  const ov = $('vidCap'), sp = $('vidCapTxt'); if(!ov || !sp) return;
+  clearInterval(ov._iv);
+  if(!videoDur || name === 'off' || $('trimWrap').classList.contains('hidden')){ ov.style.display = 'none'; return; }
+  ov.style.display = 'flex';
+  const scale = Math.max(0.16, ($('preview').clientHeight || 280) / 1280);
+  const info = applyCapLook(sp, name, scale);
+  const seq = (info && info.words === 1)
+    ? ['CAPTIONS','POP','WORD','BY','WORD']
+    : ['THIS IS','HOW YOUR','CAPTIONS','WILL LOOK','ON VIDEO'];
+  let i = 0;
+  const step = () => {
+    sp.textContent = seq[i % seq.length]; i++;
+    if(info && info.anim){ sp.classList.remove('pv-'+info.anim); void sp.offsetWidth; sp.classList.add('pv-'+info.anim); }
+  };
+  step();
+  ov._iv = setInterval(step, (info && info.words === 1) ? 550 : 800);
+}
+window.addEventListener('resize', () => updateVidCap($('caps').value));
 function lockPremium(sel, prev){
   sel.onchange = () => {
-    if(sel.id === 'caps') updateCapPreview(sel.value);   // preview even locked styles
+    if(sel.id === 'caps'){ updateCapPreview(sel.value); updateVidCap(sel.value); }   // preview even locked styles
     if(FREE_STYLES.includes(sel.value) || isPro()){ prev.v = sel.value; return; }
     sel.value = prev.v;
     showUpgrade();
@@ -476,7 +511,7 @@ function setFile(f){
   const pv = $('preview'); pv.src = URL.createObjectURL(f); $('trimWrap').classList.remove('hidden');
   pv.onloadedmetadata = () => { videoDur = pv.duration || 0; $('trimEnd').value = Math.round(videoDur);
     $('trimStart').value = 0;
-    updateTL(); buildStrip(); };
+    updateTL(); buildStrip(); updateVidCap($('caps').value); };
 }
 
 // ---------- CapCut-style drag timeline ----------
