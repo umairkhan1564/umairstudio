@@ -193,8 +193,8 @@
       <div>
         <label>Auto-enhance</label>
         <select id="enhance">
+          <option value="on">On — polish &amp; clean (recommended)</option>
           <option value="off">Off</option>
-          <option value="on">🔒 On — polish + clean metadata (Pro)</option>
         </select>
       </div>
     </div>
@@ -212,7 +212,7 @@
       <div class="bar"><i id="fill"></i></div>
       <div class="stage" id="stage">Starting…</div>
     </div>
-    <div class="note">First run downloads the AI model (~80 MB) and the video engine once — after that it's cached and fast. Everything happens on your device; your video never leaves your browser. Free plan: 30 minutes of video per day (resets every 24h) — Pro is unlimited.</div>
+    <div class="note">First run downloads the AI model (~80 MB) and the video engine once — after that it's cached and fast. Everything happens on your device; your video never leaves your browser. 100% free — every style and feature, no limits, no sign-up.</div>
   </div>
 
   <button class="btn hidden" id="dlAll" style="margin:4px 0 18px">⬇ Download all shorts (.zip)</button>
@@ -226,48 +226,6 @@
   <button class="mbtn" id="moBtn"></button>
 </div></div>
 
-<div id="upModal" class="mo hidden"><div class="mob" style="max-width:440px;text-align:left">
-  <button class="mx" id="upX">✕</button>
-  <h3 style="text-align:center;margin-bottom:4px">✨ Upgrade to Shortify Pro</h3>
-  <p style="color:var(--mut);font-size:13.5px;text-align:center;margin-bottom:18px">Animated captions, AI best-moment picking, HD &amp; unlimited use.</p>
-  <div style="display:grid;gap:12px">
-    <div style="border:1px solid var(--line);border-radius:12px;padding:16px;background:#f6f4fc">
-      <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Basic</b><b style="font-size:20px">$5<small style="color:var(--mut);font-size:12px;font-weight:400">/mo</small></b></div>
-      <ul style="list-style:none;margin-top:10px;display:grid;gap:6px;font-size:13px;color:var(--mut)">
-        <li>⭐ All animated caption styles (karaoke, pop, bounce…)</li>
-        <li>🤖 AI best-moment picking (free = random clips)</li>
-        <li>✨ Auto-enhance + clean metadata</li>
-        <li>✅ 1080p HD output</li>
-        <li>♾️ No daily limit — unlimited use</li>
-        <li>✅ Ad-free</li>
-      </ul>
-    </div>
-    <div style="border:2px solid var(--cta);border-radius:12px;padding:16px;background:#f6f4fc;position:relative">
-      <span style="position:absolute;top:-10px;right:14px;background:var(--cta);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px">BEST VALUE</span>
-      <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">Pro</b><b style="font-size:20px">$10<small style="color:var(--mut);font-size:12px;font-weight:400">/mo</small></b></div>
-      <ul style="list-style:none;margin-top:10px;display:grid;gap:6px;font-size:13px;color:var(--mut)">
-        <li>✅ Everything in Basic</li>
-        <li>🎯 Face tracking (auto-reframe)</li>
-        <li>🎬 Full episodes (2GB+) &amp; 2K</li>
-        <li>⚡ Priority + accurate Urdu/Hindi</li>
-        <li style="color:var(--cta2);font-size:11.5px">Server features rolling out this week</li>
-      </ul>
-    </div>
-  </div>
-  <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--mut)">
-    <b style="color:var(--fg)">How to get Pro:</b>
-    <div style="margin-top:8px;line-height:1.7">
-      1. Pay via <b style="color:var(--fg)">JazzCash</b> <span id="payJazz">—</span> or <b style="color:var(--fg)">Binance</b> <span id="payBinance">—</span><br>
-      2. Send the payment screenshot + your account email below to <b style="color:var(--fg)" id="payContact">—</b><br>
-      3. Your account is upgraded within a few hours ✨
-    </div>
-    <div style="margin-top:12px;background:#f6f4fc;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:12.5px">Your account: <b style="color:var(--cta2)" id="upEmail">—</b></div>
-  </div>
-  <button class="mbtn" id="upClose" style="margin-top:16px;background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;border:0;border-radius:10px;padding:11px;width:100%;font-weight:700;cursor:pointer">Got it</button>
-</div></div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="/vendor/ffmpeg.js"></script>
 <script type="module">
 const { FFmpeg } = FFmpegWASM;
@@ -276,86 +234,12 @@ const $ = id => document.getElementById(id);
 let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Bold White';
 let INPUT = 'in', videoDur = 0, RESULTS = [];
 
-// ---------- Auth (Firebase Google login) ----------
-// Firebase web-app config — login gate is ON while this is set.
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBwIMwmqzPV-05sQxXyo4oJnXJV5ROh6ww",
-  authDomain: "umairstudio.firebaseapp.com",
-  projectId: "umairstudio",
-  storageBucket: "umairstudio.firebasestorage.app",
-  messagingSenderId: "663358190480",
-  appId: "1:663358190480:web:7bec30086457d793b73915"
-};
-const AUTH_ON = !!(FIREBASE_CONFIG && window.firebase);
+// ---------- No accounts, no Pro — everything is free for everyone ----------
+// (Firebase login + the Pro entitlement/upgrade flow were removed: every
+// caption style, AI best-moment picking, auto-enhance and unlimited use are
+// free. isPro() is always true so nothing is gated.)
 let USER = null;
-if (AUTH_ON){
-  firebase.initializeApp(FIREBASE_CONFIG);
-  firebase.auth().onAuthStateChanged(u => { USER = u; renderAuth(); checkPro(); });
-}
-
-// ---------- Pro entitlement ----------
-// Pro status comes from the live entitlement API on the VPS (owner enables
-// subscriptions from the web admin tool). The page sends only the SHA-256 of
-// the signed-in email — the customer's email is never sent or exposed.
-let PRO_ACTIVE = false, PRO_PLAN = '';
-async function sha256hex(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
-async function checkPro(){
-  PRO_ACTIVE = false; PRO_PLAN = '';
-  try{
-    if(USER && USER.email){
-      const h = await sha256hex(USER.email.trim().toLowerCase());
-      const r = await (await fetch('https://downloader.clipcutstudio.co/pro-api/check?h='+h, {cache:'no-store'})).json();
-      if(r.pro){ PRO_ACTIVE = true; PRO_PLAN = r.plan || 'pro'; }
-    }
-  }catch(e){}
-  if(PRO_ACTIVE){
-    const en = $('enhance'); if(en) en.value = 'on';   // Pro default: enhance on
-    [...$('caps').options].forEach(o => { if(ANIM_STYLES[o.value]) o.text = styleLabel(o.value, false); });
-  }
-  renderAuth();
-}
-
-function renderAuth(){
-  const el = $('authSlot'); if(!el) return;
-  if(!AUTH_ON){ el.innerHTML=''; return; }
-  if(USER){
-    const name = (USER.displayName||USER.email||'').split(' ')[0];
-    const badge = PRO_ACTIVE
-      ? `<span style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">✨ ${PRO_PLAN==='pro'?'PRO':'BASIC'}</span>`
-      : `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;font-weight:700;border:0">✨ Upgrade</button>`;
-    el.innerHTML = `${badge} <img src="${USER.photoURL||''}" alt=""> <span>${name}</span> <button id="signOut">Sign out</button>`;
-  } else {
-    el.innerHTML = `<button id="goPro" style="background:linear-gradient(135deg,var(--cta),var(--cta2));color:#fff;font-weight:700;border:0">✨ Upgrade</button> <button id="signIn">Sign in</button>`;
-  }
-  const so = $('signOut'), si = $('signIn'), gp = $('goPro');
-  if(so) so.onclick = () => firebase.auth().signOut();
-  if(si) si.onclick = doLogin;
-  if(gp) gp.onclick = showUpgrade;
-  renderQuota();
-}
-
-// ---------- Upgrade modal ----------
-const PAY = { jazzcash: '03084973164 (Muhammad Umair Khan)', binance: '762700380', contact: 'umairkhan1564@gmail.com · WhatsApp +92 308 4973164' };
-function showUpgrade(){
-  $('payJazz').textContent = PAY.jazzcash;
-  $('payBinance').textContent = PAY.binance;
-  $('payContact').textContent = PAY.contact;
-  if(USER){ $('upEmail').textContent = USER.email || ''; }
-  else {
-    $('upEmail').innerHTML = '<a style="color:var(--cta2);cursor:pointer;text-decoration:underline">Sign in with Google</a> — needed to activate Pro';
-    $('upEmail').querySelector('a').onclick = doLogin;
-  }
-  $('upModal').classList.remove('hidden');
-}
-function hideUpgrade(){ $('upModal').classList.add('hidden'); }
-$('upX').onclick = hideUpgrade; $('upClose').onclick = hideUpgrade;
-$('upModal').onclick = e => { if(e.target === $('upModal')) hideUpgrade(); };
-function doLogin(){
-  // Popup sign-in breaks under this page's cross-origin-isolation headers
-  // (needed for the fast multi-thread engine), so sign-in happens on /login/
-  // and Firebase's shared auth state brings the session back here.
-  location.href = '/login/?next=' + encodeURIComponent(location.pathname);
-}
+function renderAuth(){ const el = $('authSlot'); if(el) el.innerHTML = ''; }
 // ---------- Modal ----------
 function showModal(title, text, btn, onBtn){
   $('moTitle').textContent = title; $('moText').textContent = text;
@@ -423,11 +307,10 @@ const ANIM_STYLES = {
   'Green Screen':    {f:'dejavu', words:2, anim:null,    p:'fontsize=52:fontcolor=white:box=1:boxcolor=0x00ff00:boxborderw=16'},
 };
 const CAP_KEYS = [...Object.keys(CAP_STYLES), ...Object.keys(ANIM_STYLES)];
-const FREE_STYLES = ['Bold White','Classic Yellow','Impact Tall','Comic','Chunky','Heavy','Marker',
-  'TikTok Thick','Shadow Soft','Minimal','Boxed Black','Boxed White','One Word','One Word Yellow','off'];
-const isPro = () => PRO_ACTIVE;
+const FREE_STYLES = [...CAP_KEYS, 'off'];   // everything is free — no locks
+const isPro = () => true;
 const styleLabel = (v, lock) => v==='off' ? 'No captions'
-  : (lock ? '🔒 ' : '') + v + (ANIM_STYLES[v] ? ' ⭐' : '') + (lock ? ' — Pro' : '');
+  : v + (ANIM_STYLES[v] ? ' ⭐' : '');
 
 // hidden select = the value store every other part reads; visible UI = tile strip
 (function(){
@@ -525,46 +408,19 @@ function updateVidCap(name){
   ov._iv = setInterval(step, (info && info.words === 1) ? 550 : 800);
 }
 window.addEventListener('resize', () => updateVidCap($('caps').value));
-function lockPremium(sel, prev){
-  sel.onchange = () => {
-    if(sel.id === 'caps') updateVidCap(sel.value);   // on-video preview, even for locked styles
-    if(FREE_STYLES.includes(sel.value) || isPro()){ prev.v = sel.value; return; }
-    sel.value = prev.v;
-    showUpgrade();
-  };
+function lockPremium(sel){
+  sel.onchange = () => { if(sel.id === 'caps') updateVidCap(sel.value); };   // on-video preview
 }
-lockPremium($('caps'), {v:'Bold White'});
+lockPremium($('caps'));
 buildCapStrip();
-// Auto-enhance is a Pro feature (quality polish + metadata clean)
-$('enhance').onchange = () => {
-  if($('enhance').value === 'on' && !isPro()){ $('enhance').value = 'off'; showUpgrade(); }
-};
 
-// ---------- Free daily limit: 30 min of video per day, resets after 24h ----------
-const FREE_DAILY_SEC = 1800;
-function quotaState(){
-  let q = {t: Date.now(), used: 0};
-  try{ const s = JSON.parse(localStorage.getItem('sfy_quota')); if(s && s.t) q = s; }catch(e){}
-  if(Date.now() - q.t > 86400e3){ q = {t: Date.now(), used: 0}; localStorage.setItem('sfy_quota', JSON.stringify(q)); }
-  return q;
-}
-const quotaLeft = () => Math.max(0, FREE_DAILY_SEC - quotaState().used);
-function quotaAdd(sec){
-  const q = quotaState(); q.used += Math.round(sec);
-  localStorage.setItem('sfy_quota', JSON.stringify(q)); renderQuota();
-}
+// Everything is free & unlimited — the strip just shows the render length.
 function renderQuota(){
   const el = $('quota'); if(!el) return;
-  let need = '';
-  if(videoDur){
-    const s = Math.max(0, parseFloat($('trimStart').value)||0);
-    const e = parseFloat($('trimEnd').value)||videoDur;
-    need = `Time needed: <b style="color:var(--fg)">${fmtT(Math.max(1, e > s ? e - s : videoDur))}</b> · `;
-  }
-  if(isPro()){ el.innerHTML = need + '✨ Pro — unlimited'; return; }
-  const left = quotaLeft();
-  el.innerHTML = need + `Time left today: <b style="color:var(--fg)">${Math.floor(left/60)} min</b> · <a id="qUp">Go unlimited ✨</a>`;
-  const a = $('qUp'); if(a) a.onclick = showUpgrade;
+  if(!videoDur){ el.textContent = ''; return; }
+  const s = Math.max(0, parseFloat($('trimStart').value)||0);
+  const e = parseFloat($('trimEnd').value)||videoDur;
+  el.innerHTML = `Time needed: <b style="color:var(--fg)">${fmtT(Math.max(1, e > s ? e - s : videoDur))}</b> · free &amp; unlimited`;
 }
 renderQuota();
 
@@ -760,14 +616,9 @@ function pickHighlights(chunks, minLen, maxLen, count, es){
       cands.push(mk(sents[i].start, end, words));
   }
   if(!cands.length) cands.push(mk(sents[0].start, sents[sents.length-1].end, sents.flatMap(s=>s.words)));
-  // 3) Pro: score every candidate with the AI engagement analyzer and take the
-  // best. Free: random candidates (clips still start on sentence boundaries).
-  if(isPro()){
-    cands.forEach(c => c.score = segScore(c, es));
-    cands.sort((a,b)=> b.score - a.score);
-  } else {
-    for(let i=cands.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [cands[i],cands[j]]=[cands[j],cands[i]]; }
-  }
+  // 3) score every candidate with the AI engagement analyzer, take the best
+  cands.forEach(c => c.score = segScore(c, es));
+  cands.sort((a,b)=> b.score - a.score);
   const want = count>0 ? count : Math.min(6, Math.max(1, Math.round(cands.length/4)));
   const picked=[];
   for(const c of cands){
@@ -825,14 +676,13 @@ function captionFilters(seg, styleName){
 async function renderShort(i, card){
   const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
   const capStyle = s.caps || 'Bold White';
-  const enh = isPro() && (($('enhance')||{}).value || 'off') === 'on';   // Pro feature
+  const enh = (($('enhance')||{}).value || 'on') === 'on';
   const title=(s.text||'').replace(/[<>:"/\\|?*\n\r]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
   const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
   // auto-enhance: subtle colour/contrast/saturation lift + light sharpen (applied
   // BEFORE captions so text stays crisp). Purely a visual quality boost.
   if(enh) vf.push('eq=contrast=1.06:brightness=0.02:saturation=1.12','unsharp=5:5:0.7:3:3:0.3');
   if(capStyle!=='off') vf.push(...captionFilters(s, capStyle));
-  if(isPro()) vf.push('scale=1080:1920:flags=lanczos');   // Pro: 1080p HD output
   const outName=`short_${i}_${Date.now()}.mp4`;
   // quality bump (veryfast+crf21 > ultrafast+crf24) and, with enhance on, strip
   // the source's metadata and stamp our own + web-optimised faststart.
@@ -884,22 +734,6 @@ async function renderShort(i, card){
 
 $('go').onclick = async () => {
   if(!videoFile){ alert('Please choose a video first.'); return; }
-  // free daily limit: the selected range counts against today's 30 minutes
-  const q0 = Math.max(0, parseFloat($('trimStart').value)||0);
-  const q1 = parseFloat($('trimEnd').value)||videoDur;
-  const rangeSec = Math.max(1, q1 > q0 ? q1 - q0 : videoDur);
-  if(!isPro()){
-    const left = quotaLeft();
-    if(rangeSec > left){
-      const resetH = Math.max(1, Math.ceil((quotaState().t + 86400e3 - Date.now())/36e5));
-      showModal('Daily free limit',
-        left <= 0
-          ? `You've used today's free 30 minutes of video — it resets in about ${resetH}h. Go Pro for unlimited processing.`
-          : `Only ${Math.floor(left/60)} min ${left%60}s left today, but your selection is ${fmtT(rangeSec)}. Trim a smaller part or go unlimited with Pro.`,
-        '✨ See Pro plans', () => { hideModal(); showUpgrade(); });
-      return;
-    }
-  }
   $('results').innerHTML=''; SEGMENTS=[]; RESULTS=[]; $('dlAll').classList.add('hidden'); $('go').disabled=true;
   try{
     prog(2, MT ? 'Loading video engine (⚡ fast multi-thread)…' : 'Loading video engine…'); await loadFFmpeg();
@@ -926,7 +760,6 @@ $('go').onclick = async () => {
     const pcm = new Float32Array(buf.getChannelData(0));
     const ES = energyStats(pcm, 16000);   // must run before transcribe() — it transfers the buffer
     const chunks = await transcribe(pcm);
-    if(!isPro()) quotaAdd(rangeSec);   // heavy work done — count it against today's quota
 
     let minLen=10, maxLen=60;
     const lv = $('len').value;
