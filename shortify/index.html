@@ -107,6 +107,12 @@
   @keyframes pvDrop{0%{transform:translateY(-16px);opacity:0}30%,100%{transform:none;opacity:1}}
   .pv-wave{animation:pvWave 1.4s ease-in-out infinite}
   .pv-drop{animation:pvDrop 1.2s infinite}
+  @keyframes pvSwing{0%,100%{transform:translateX(-8px) rotate(-3deg)}50%{transform:translateX(8px) rotate(3deg)}}
+  @keyframes pvJitter{0%,100%{transform:translate(-2px,1px)}25%{transform:translate(2px,-2px)}50%{transform:translate(-1px,2px)}75%{transform:translate(2px,1px)}}
+  @keyframes pvFlash{0%,100%{opacity:1}50%{opacity:.3}}
+  .pv-swing{animation:pvSwing 1.6s ease-in-out infinite}
+  .pv-jitter{animation:pvJitter .28s steps(2) infinite}
+  .pv-flash{animation:pvFlash .5s infinite}
   /* inside the small tiles the same animations run with gentler moves so the
      text stays neatly inside the box */
   @keyframes pvPopS{0%{transform:translateY(8px) scale(.85);opacity:0}28%,100%{transform:none;opacity:1}}
@@ -121,6 +127,10 @@
   @keyframes pvDropS{0%{transform:translateY(-8px);opacity:0}30%,100%{transform:none;opacity:1}}
   .cst .pv-wave{animation:pvWaveS 1.4s ease-in-out infinite}
   .cst .pv-drop{animation:pvDropS 1.2s infinite}
+  @keyframes pvSwingS{0%,100%{transform:translateX(-4px) rotate(-2deg)}50%{transform:translateX(4px) rotate(2deg)}}
+  .cst .pv-swing{animation:pvSwingS 1.6s ease-in-out infinite}
+  .cst .pv-jitter{animation:pvJitter .28s steps(2) infinite}
+  .cst .pv-flash{animation:pvFlash .5s infinite}
   #quota{text-align:center;font-size:12.5px;color:var(--mut);margin-top:9px}
   #quota a{color:var(--cta2);font-weight:600;cursor:pointer}
   .pwrap{position:relative}
@@ -306,6 +316,14 @@ const CAP_STYLES = {
   'Sunset':         {f:'bangers',p:'fontsize=62:fontcolor=0xff8a3d:borderw=6:bordercolor=0x5a1a00'},
   'Lemon':          {f:'bangers',p:'fontsize=62:fontcolor=0xfff23d:borderw=6:bordercolor=black'},
   'Barbie':         {f:'lucky',  p:'fontsize=54:fontcolor=white:box=1:boxcolor=0xff4fb0@0.95:boxborderw=15'},
+  'Grape':          {f:'bangers',p:`fontsize=62:fontcolor=0xb264ff:borderw=6:bordercolor=black:${SHDW}`},
+  'Coral':          {f:'lucky',  p:`fontsize=56:fontcolor=0xff6f61:borderw=7:bordercolor=black:${SHDW}`},
+  'Teal':           {f:'anton',  p:'fontsize=60:fontcolor=white:borderw=6:bordercolor=0x14b8a6:shadowcolor=0x14b8a6@0.45:shadowx=0:shadowy=4'},
+  'Emerald':        {f:'anton',  p:`fontsize=60:fontcolor=0x10d98a:borderw=6:bordercolor=black:${SHDW}`},
+  'Cherry':         {f:'bangers',p:`fontsize=62:fontcolor=0xff2d55:borderw=6:bordercolor=0x4a0010:${SHDW}`},
+  'Chrome':         {f:'archivo',p:'fontsize=54:fontcolor=0xdfe7ef:borderw=3:bordercolor=0x0a1020:shadowcolor=black@0.85:shadowx=4:shadowy=4'},
+  'Royal':          {f:'archivo',p:'fontsize=50:fontcolor=0xffd700:box=1:boxcolor=0x241a7a@0.95:boxborderw=15'},
+  'Candy':          {f:'bangers',p:'fontsize=56:fontcolor=white:box=1:boxcolor=0xff5fa8@0.95:boxborderw=15'},
 };
 // PRO animated: karaoke word-by-word, highlight boxes, motion
 const ANIM_STYLES = {
@@ -328,6 +346,10 @@ const ANIM_STYLES = {
   'Typewriter':      {f:'dejavu', words:1, anim:null,    p:`fontsize=56:fontcolor=white:borderw=5:bordercolor=black:${SHDW}`},
   'Float':           {f:'anton',  words:2, anim:'wave',  p:`fontsize=58:fontcolor=white:borderw=6:bordercolor=black:${SHDW}`},
   'Drop In':         {f:'archivo',words:2, anim:'drop',  p:`fontsize=56:fontcolor=white:borderw=6:bordercolor=black:${SHDW}`},
+  'Grape Pop':       {f:'bangers',words:1, anim:'pop',   p:`fontsize=66:fontcolor=0xb264ff:borderw=6:bordercolor=black:${SHDW}`},
+  'Swing':           {f:'bangers',words:2, anim:'swing', p:`fontsize=60:fontcolor=white:borderw=6:bordercolor=black:${SHDW}`},
+  'Jitter':          {f:'archivo',words:1, anim:'jitter',p:`fontsize=62:fontcolor=0xffe23d:borderw=8:bordercolor=black:${SHDW}`},
+  'Flash':           {f:'anton',  words:1, anim:'flash', p:`fontsize=64:fontcolor=yellow:borderw=7:bordercolor=black:${SHDW}`},
 };
 const CAP_KEYS = [...Object.keys(CAP_STYLES), ...Object.keys(ANIM_STYLES)];
 const FREE_STYLES = [...CAP_KEYS, 'off'];   // everything is free — no locks
@@ -693,6 +715,9 @@ function captionFilters(seg, styleName){
     else if(a==='pulse'){  extra = `:alpha='0.62+0.38*abs(sin((t-${G})*7))'`; }
     else if(a==='wave'){   y = `${baseY}+8*sin((t-${G})*6)`; extra = `:alpha='min(1,(t-${G})/0.1)'`; }
     else if(a==='drop'){   y = `${baseY}-28+min(28,(t-${G})*260)`; extra = `:alpha='min(1,(t-${G})/0.1)'`; }
+    else if(a==='swing'){  x = `(w-text_w)/2+14*sin((t-${G})*3)`; extra = `:alpha='min(1,(t-${G})/0.1)'`; }
+    else if(a==='jitter'){ x = `(w-text_w)/2+4*sin(34*t)`; y = `${baseY}+4*sin(29*t)`; }
+    else if(a==='flash'){  extra = `:alpha='0.35+0.65*abs(sin((t-${G})*11))'`; }
     parts.push(`drawtext=fontfile=${fontFile}:text='${txt}':${style}:x='${x}':y='${y}'${extra}:enable='between(t,${G},${E})'`);
   }
   return parts;
