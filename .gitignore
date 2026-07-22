@@ -3,3 +3,7 @@ speech*.mp4
 test*.mp4
 trimtest.mp4
 activations-private.log
+
+# release artifacts are deployed by scp (release.ps1), NOT via git
+uploader/BulkUploader_Setup.exe
+uploader/version.json

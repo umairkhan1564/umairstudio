@@ -1,7 +1,0 @@
-{
-    "version":  "1.12",
-    "url":  "https://umairstudio.co/uploader/BulkUploader_Setup.exe",
-    "sha256":  "c5eade376ae7dfc300b679bcf4664fe248856477388b14acc9c08464596ae2db",
-    "installer":  true,
-    "notes":  "v1.12: naya naam \u0027Bulk Uploader\u0027. RDP/Server fix (installer khud WebView2 install karta hai), multi-tasking (analytics + posting ek sath), Business Manager ke SAARE pages fetch, account par Remove button + ek click me saare pages enable/disable, sidebar chhupane ka toggle, License status card (Activate/Renew), account naam poora dikhta hai. Plus fixes: Play crash, Save button, Drive folder khatam hone ka message, auto-update loop."
-}
