@@ -16,6 +16,16 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://clipcutstudio.co/blog/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://clipcutstudio.co/blog/how-to-make-youtube-shorts-from-long-videos-free/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://clipcutstudio.co/uploader/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
