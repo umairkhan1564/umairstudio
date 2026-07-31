@@ -562,10 +562,11 @@ async function buildStrip(){
 
 function prog(pct, msg){ $('prog').style.display='block'; $('fill').style.width=Math.round(pct)+'%'; if(msg) $('stage').textContent=msg; }
 
-// Multi-thread engine needs cross-origin isolation (COOP/COEP headers, set on
-// Netlify for /shortify/*). Browsers/hosts without it fall back to the
-// single-thread core automatically.
-const MT = window.crossOriginIsolated === true;
+// Engine: force the SINGLE-THREAD core. The multi-thread core deadlocks on the
+// audio-extract step on some machines (high core counts), freezing the tool at
+// "Extracting audio…" so no captions are ever produced. Single-thread is a bit
+// slower but reliable everywhere — correctness over speed.
+const MT = false;
 // mt core MUST get an explicit thread count — "auto" spawns one thread per
 // hardware core and deadlocks on high-core machines. 4 is the sweet spot.
 const TH = MT ? ['-threads','4'] : [];
