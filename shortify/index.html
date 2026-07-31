@@ -819,7 +819,7 @@ $('go').onclick = async () => {
       INPUT = 'trimmed.mp4';
     }
     prog(22,'Extracting audio…');
-    await fm.exec(['-i',INPUT,'-vn','-ac','1','-ar','16000','-f','wav','audio.wav']);
+    await fm.exec([...TH,'-i',INPUT,'-vn','-ac','1','-ar','16000','-f','wav','audio.wav']);   // TH is mandatory — the mt core hangs without an explicit -threads
     const wav = await fm.readFile('audio.wav');
     prog(30,'Transcribing (AI)…');
     const audioCtx = new AudioContext({sampleRate:16000});
