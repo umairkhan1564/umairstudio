@@ -232,6 +232,13 @@
           <option value="off">Off</option>
         </select>
       </div>
+      <div>
+        <label>Auto-reframe</label>
+        <select id="reframe">
+          <option value="on">On — keep the speaker in frame</option>
+          <option value="off">Off — center crop</option>
+        </select>
+      </div>
     </div>
 
     <div style="margin-top:18px">
@@ -268,6 +275,8 @@ const { FFmpeg } = FFmpegWASM;
 const $ = id => document.getElementById(id);
 let videoFile = null, ffmpeg = null, transcriber = null, SEGMENTS = [], CAPS = 'Bold White';
 let INPUT = 'in', videoDur = 0, RESULTS = [];
+let TRIM0 = 0;              // trim start offset (segment times are relative to the trimmed clip)
+let reframeVid = null;      // offscreen <video> used to sample frames for auto-reframe
 
 // ---------- No accounts, no Pro — everything is free for everyone ----------
 // (Firebase login + the Pro entitlement/upgrade flow were removed: every
@@ -741,12 +750,63 @@ function captionFilters(seg, styleName){
   return parts;
 }
 
+// ---------- Auto-reframe ----------
+// Content-aware crop: for a landscape source we sample a few frames of the
+// clip's range, score each column by detail (gradient) + motion (frame diff),
+// and return the subject's horizontal centre as a fraction of the source width
+// (0..1). The crop is then centred there instead of always at the middle, so an
+// off-centre speaker stays in frame. Falls back to 0.5 (centre) on any problem.
+async function subjectCenterFrac(startAbs, endAbs){
+  try{
+    const pv = $('preview');
+    if(!reframeVid){
+      reframeVid = document.createElement('video');
+      reframeVid.muted = true; reframeVid.preload = 'auto'; reframeVid.src = pv.src;
+      await new Promise((res, rej) => { reframeVid.onloadedmetadata = res; reframeVid.onerror = rej; setTimeout(res, 3000); });
+    }
+    const vw = reframeVid.videoWidth, vh = reframeVid.videoHeight;
+    if(!vw || vw <= vh) return 0.5;                 // portrait/square → centre is already right
+    const W = 160, H = Math.max(1, Math.round(W * vh / vw));
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    const K = 5, colE = new Float32Array(W); let prev = null;
+    for(let k=0; k<K; k++){
+      const t = startAbs + (endAbs - startAbs) * (k + 0.5) / K;
+      reframeVid.currentTime = Math.min(t, (reframeVid.duration || t));
+      await new Promise(res => { reframeVid.onseeked = res; setTimeout(res, 700); });
+      try{ ctx.drawImage(reframeVid, 0, 0, W, H); }catch(e){ return 0.5; }
+      const d = ctx.getImageData(0, 0, W, H).data;
+      const g = new Float32Array(W*H);
+      for(let i=0,p=0; i<d.length; i+=4,p++) g[p] = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+      for(let y=0; y<H; y++) for(let x=1; x<W; x++){
+        const idx = y*W + x;
+        const grad = Math.abs(g[idx] - g[idx-1]);
+        const mot = prev ? Math.abs(g[idx] - prev[idx]) : 0;
+        colE[x] += grad + mot*1.5;
+      }
+      prev = g;
+    }
+    let s=0, sw=0; for(let x=0; x<W; x++){ s += colE[x]; sw += colE[x]*x; }
+    if(s < 1e-3) return 0.5;
+    let fc = (sw / s) / (W - 1);
+    fc = 0.5 + (fc - 0.5) * 0.85;                    // pull slightly toward centre for stability
+    return Math.max(0, Math.min(1, fc));
+  }catch(e){ console.warn('reframe failed', e); return 0.5; }
+}
+
 async function renderShort(i, card){
   const s=SEGMENTS[i], dur=Math.max(3, s.end - s.start);
   const capStyle = s.caps || 'Bold White';
   const enh = (($('enhance')||{}).value || 'on') === 'on';
+  const reframe = (($('reframe')||{}).value || 'on') === 'on';
   const title=(s.text||'').replace(/[<>:"/\\|?*\n\r]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
-  const vf=['scale=720:1280:force_original_aspect_ratio=increase','crop=720:1280'];
+  // auto-reframe: centre the 9:16 crop on the subject instead of the frame middle
+  let cropX = '(in_w-720)/2';
+  if(reframe){
+    const fc = await subjectCenterFrac(TRIM0 + s.start, TRIM0 + s.end);
+    if(Math.abs(fc - 0.5) > 0.02) cropX = `clip(in_w*${fc.toFixed(4)}-360,0,in_w-720)`;
+  }
+  const vf=['scale=720:1280:force_original_aspect_ratio=increase',`crop=720:1280:x='${cropX}':y=0`];
   // auto-enhance: subtle colour/contrast/saturation lift + light sharpen (applied
   // BEFORE captions so text stays crisp). Purely a visual quality boost.
   if(enh) vf.push('eq=contrast=1.06:brightness=0.02:saturation=1.12','unsharp=5:5:0.7:3:3:0.3');
@@ -807,7 +867,7 @@ $('go').onclick = async () => {
     prog(2, MT ? 'Loading video engine (⚡ fast multi-thread)…' : 'Loading video engine…'); await loadFFmpeg();
     const fm = ffmpeg;
     await fm.writeFile('in', new Uint8Array(await videoFile.arrayBuffer()));
-    INPUT = 'in';
+    INPUT = 'in'; TRIM0 = 0; reframeVid = null;
     // Optional trim: cut the chosen Start–End range first, then work on just that
     const t0 = Math.max(0, parseFloat($('trimStart').value)||0);
     const t1 = parseFloat($('trimEnd').value);
@@ -817,7 +877,7 @@ $('go').onclick = async () => {
       if(t1 && t1 > t0) args.push('-t', String(t1 - t0));
       args.push(...TH,'-c:v','libx264','-preset','ultrafast','-crf','26','-c:a','aac','-y','trimmed.mp4');
       await fm.exec(args);
-      INPUT = 'trimmed.mp4';
+      INPUT = 'trimmed.mp4'; TRIM0 = t0;   // segment times are now relative to the trim start
     }
     prog(22,'Extracting audio…');
     await fm.exec([...TH,'-i',INPUT,'-vn','-ac','1','-ar','16000','-f','wav','audio.wav']);   // TH is mandatory — the mt core hangs without an explicit -threads
