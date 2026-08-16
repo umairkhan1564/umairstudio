@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EG393DZYJ8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-EG393DZYJ8');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shortify Desktop — AI Viral Shorts Maker (Windows app)</title>
+<meta name="description" content="Windows desktop app that turns long videos into viral 9:16 shorts — AI viral-rate scoring, auto face tracking, animated karaoke captions, up to 2K. 100% local engine, no API, no per-clip credits.">
+<link rel="canonical" href="https://clipcutstudio.co/shortify-app/">
+<meta property="og:title" content="Shortify Desktop — AI Viral Shorts Maker">
+<meta property="og:description" content="Long videos → viral 9:16 shorts on your PC. AI viral-rate scoring, face tracking, 61 caption styles, up to 2K. No API, no credits.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clipcutstudio.co/shortify-app/">
+<meta property="og:image" content="https://clipcutstudio.co/og.png">
+<style>
+  :root{
+    --bg:#faf9ff; --side:#f5f2fd; --card:#ffffff; --card2:#f5f2fd;
+    --accent:#7c3aed; --accent2:#a855f7; --green:#16a34a; --text:#1b1433;
+    --muted:#6b6486; --border:#ded7f0; --gold:#b45309;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.55;
+    background-image:radial-gradient(600px 400px at 15% -5%, rgba(124,58,237,.07), transparent),
+                     radial-gradient(500px 400px at 100% 10%, rgba(168,85,247,.05), transparent);}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+  .btn{display:inline-block;padding:15px 30px;border-radius:40px;font-weight:700;font-size:17px;
+    transition:transform .12s ease, box-shadow .12s ease;cursor:pointer;border:none}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    box-shadow:0 10px 30px rgba(124,58,237,.25)}
+  .btn-green{background:var(--green);color:#ffffff;box-shadow:0 10px 30px rgba(22,163,74,.22)}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .topnav{display:flex;justify-content:center;gap:8px;padding:14px 0;flex-wrap:wrap}
+  .topnav a{color:var(--muted);font-size:14px;padding:6px 12px;border-radius:20px}
+  .topnav a:hover{color:var(--accent)}
+
+  /* HERO */
+  header{padding:40px 0 40px;text-align:center}
+  .badge{display:inline-block;background:var(--green);color:#ffffff;font-weight:800;
+    padding:7px 18px;border-radius:30px;font-size:13px;letter-spacing:.5px;margin-bottom:26px}
+  .logo{width:92px;height:92px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 12px 34px rgba(124,58,237,.30)}
+  h1{font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-1px}
+  h1 .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:19px;margin:16px auto 8px;max-width:640px}
+  .kinds{color:var(--accent);font-weight:700;font-size:17px;margin:10px 0 30px;letter-spacing:.5px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .trust{color:var(--muted);font-size:13px;margin-top:16px}
+
+  /* SECTIONS */
+  section{padding:46px 0}
+  h2{font-size:30px;font-weight:800;text-align:center;margin-bottom:8px}
+  .lead{color:var(--muted);text-align:center;max-width:660px;margin:0 auto 34px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .feat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+  .feat h3{font-size:17px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .feat p{color:var(--muted);font-size:14px}
+  .tick{color:var(--green);font-weight:800}
+
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .step{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:22px 22px 22px 66px;position:relative}
+  .step:before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:20px;
+    width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:16px;margin-bottom:4px}
+  .step p{color:var(--muted);font-size:14px}
+
+  /* PRICING — two plans */
+  .plans{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:720px;margin:0 auto}
+  .plan{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:30px;text-align:center;
+    box-shadow:0 14px 40px rgba(124,58,237,.06);position:relative}
+  .plan.best{border:2px solid var(--accent);box-shadow:0 18px 46px rgba(124,58,237,.14)}
+  .plan .tag{display:inline-block;background:var(--card2);border:1px solid var(--border);color:var(--muted);
+    font-weight:800;padding:5px 14px;border-radius:30px;font-size:12px;letter-spacing:.5px}
+  .plan.best .tag{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none}
+  .price{font-size:38px;font-weight:800;margin:2px 0 2px}
+  .price small{font-size:15px;color:var(--muted);font-weight:600}
+  .price .usd{color:var(--muted);font-size:15px;font-weight:600}
+  .off{display:inline-block;background:#dc2626;color:#fff;font-weight:800;font-size:12px;
+    padding:4px 12px;border-radius:20px;letter-spacing:.5px;margin:12px 0 4px}
+  .was{color:var(--muted);text-decoration:line-through;font-size:19px;font-weight:700}
+  .plan ul{list-style:none;text-align:left;margin:18px 0;display:inline-block}
+  .plan li{padding:5px 0;color:var(--muted)}
+  .plan li b{color:var(--text)}
+
+  .pay{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:720px;margin:22px auto 0}
+  .paycard{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;font-size:14px}
+  .paycard h4{font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .paycard b{color:var(--text)}
+  .mono{font-family:'Consolas',monospace;background:#efe9fb;border:1px solid var(--border);border-radius:8px;
+    padding:2px 8px;display:inline-block;margin-top:4px;color:var(--text)}
+
+  .req{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  .req span{background:var(--card);border:1px solid var(--border);border-radius:30px;padding:9px 18px;font-size:14px;color:var(--muted)}
+
+  /* DOWNLOAD BAND */
+  .band{background:linear-gradient(135deg,rgba(124,58,237,.09),rgba(124,58,237,.08));
+    border:1px solid var(--border);border-radius:24px;text-align:center;padding:44px 24px;margin:30px 0}
+  .band h2{margin-bottom:14px}
+  .note{background:#fff8ec;border:1px solid #f2d9a8;color:#7a5310;border-radius:12px;padding:12px 16px;
+    font-size:13.5px;max-width:640px;margin:16px auto 0}
+
+  footer{text-align:center;color:var(--muted);padding:40px 0 60px;font-size:14px;border-top:1px solid var(--border);margin-top:30px}
+  footer a{color:var(--accent);font-weight:700}
+
+  @media(max-width:720px){
+    h1{font-size:34px}.grid,.steps,.plans,.pay{grid-template-columns:1fr}.sub{font-size:17px}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="topnav">
+    <a href="https://clipcutstudio.co/">← All tools</a>
+    <a href="https://clipcutstudio.co/shortify/">Free browser version</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#download">Download</a>
+    <a href="https://wa.me/923084973164" target="_blank">WhatsApp</a>
+  </nav>
+</div>
+
+<header>
+  <div class="wrap">
+    <span class="badge">● DESKTOP APP — NOW LIVE</span>
+    <div class="logo">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+    </div>
+    <h1>Shortify <span class="g">Desktop</span></h1>
+    <p class="sub">Turn long videos into <b>viral 9:16 shorts</b> — right on your PC. AI picks the best moments, tracks the speaker's face, and burns animated captions. No API, no per-clip credits.</p>
+    <p class="kinds">🔥 Viral-rate scoring · 👤 Face tracking · 🎬 61 caption styles · 📐 up to 2K</p>
+    <div class="cta-row">
+      <a class="btn btn-green" href="#download">⬇ Download for Windows</a>
+      <a class="btn btn-ghost" href="#pricing">💳 Pricing &amp; buy</a>
+      <a class="btn btn-ghost" href="https://wa.me/923084973164" target="_blank">💬 WhatsApp us</a>
+    </div>
+    <p class="trust">Windows 10/11 (64-bit) · 100% local engine · ffmpeg bundled — nothing else to install</p>
+  </div>
+</header>
+
+<section class="wrap">
+  <h2>Why the desktop app?</h2>
+  <p class="lead">The free browser version is great for quick clips. The desktop app is the <b>pro engine</b> — heavier features, full-length episodes, and no limits.</p>
+  <div class="grid">
+    <div class="feat"><h3><span class="tick">✓</span> 🔥 AI viral-rate scoring</h3><p>Every clip gets a 0–100% viral score. The app keeps only the strongest hooks, questions, emotion and laughter moments.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 👤 Auto face tracking</h3><p>The 9:16 crop follows the speaker across the frame — no more heads cut off the edge.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> ✂️ Complete clips</h3><p>Clips start on the hook and end on a full sentence — never cut mid-thought.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🎬 61 caption styles</h3><p>Animated word-by-word karaoke, pop, bounce, neon and more — burned in, perfectly synced.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 📐 4 ratios · up to 2K</h3><p>9:16, 4:5, 1:1 and 16:9 at 720p / 1080p / 1440p (2K). Pick per project.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🖥️ 100% local &amp; offline</h3><p>Whisper + ffmpeg run on your PC. No API keys, no monthly credits, no uploads — your videos stay private.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 📦 Batch whole folders</h3><p>Queue many long videos and full episodes at once — the app clips them all.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🏷️ Caption = file name</h3><p>Each short is named after its caption — drop the folder into Bulk Uploader and captions fill in automatically.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>How it works</h2>
+  <p class="lead">Four steps — long video in, viral-scored shorts out.</p>
+  <div class="steps">
+    <div class="step"><h3>Add your videos</h3><p>Drop in one long video or a whole folder of episodes.</p></div>
+    <div class="step"><h3>Pick your look</h3><p>Choose ratio (9:16 / 4:5 / 1:1 / 16:9), quality, and a caption style. Face tracking is on by default.</p></div>
+    <div class="step"><h3>Press Make Shorts</h3><p>Whisper transcribes, the AI scores every moment, and ffmpeg cuts + crops + burns captions.</p></div>
+    <div class="step"><h3>Get viral-scored clips</h3><p>Each short shows its 🔥 viral %. A report lists the score, ratio and hook of every clip.</p></div>
+  </div>
+</section>
+
+<section class="wrap" id="pricing">
+  <h2>Pricing</h2>
+  <p class="lead">One license per PC. Machine-locked key, free updates &amp; support. Pay with JazzCash (local) or Binance (international).</p>
+  <div class="plans">
+    <div class="plan">
+      <span class="tag">MONTHLY</span>
+      <div class="off">🔥 30% OFF — LAUNCH</div>
+      <div class="was">PKR 2,500</div>
+      <div class="price">PKR 1,750 <small>/ mo</small></div>
+      <div class="usd">≈ $7 / month</div>
+      <ul>
+        <li><span class="tick">✓</span> Full app, <b>all features</b></li>
+        <li><span class="tick">✓</span> Any number of months</li>
+        <li><span class="tick">✓</span> One PC per license</li>
+        <li><span class="tick">✓</span> Free updates &amp; support</li>
+      </ul>
+      <a class="btn btn-ghost" href="#buy">How to buy →</a>
+    </div>
+    <div class="plan best">
+      <span class="tag">LIFETIME · BEST VALUE</span>
+      <div class="off">🔥 50% OFF — LAUNCH</div>
+      <div class="was">$300</div>
+      <div class="price">$150 <small>once</small></div>
+      <div class="usd">≈ PKR 42,000 one-time</div>
+      <ul>
+        <li><span class="tick">✓</span> <b>Pay once, use forever</b></li>
+        <li><span class="tick">✓</span> Never expires</li>
+        <li><span class="tick">✓</span> One PC per license</li>
+        <li><span class="tick">✓</span> Free updates &amp; support</li>
+      </ul>
+      <a class="btn btn-primary" href="#buy">How to buy →</a>
+    </div>
+  </div>
+
+  <div class="pay">
+    <div class="paycard">
+      <h4>💚 JazzCash (Pakistan)</h4>
+      Account title: <b>Muhammad Umair Khan</b><br>
+      Number: <span class="mono">0308 4973164</span>
+    </div>
+    <div class="paycard">
+      <h4>🟡 Binance (international · USDT)</h4>
+      Pay by Binance ID:<br>
+      <span class="mono">762700380</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="buy">
+  <h2>How to buy &amp; activate</h2>
+  <p class="lead">Activation is quick and manual — you get a key locked to your PC, usually within a few hours.</p>
+  <div class="steps">
+    <div class="step"><h3>Download &amp; install</h3><p>Get the installer below and open the app.</p></div>
+    <div class="step"><h3>Copy your Machine ID</h3><p>The app shows an <b>Activate</b> screen with your Machine ID (e.g. <span class="mono">3AE5-12D3-67BD</span>). Tap Copy.</p></div>
+    <div class="step"><h3>Pay &amp; send proof</h3><p>Pay via JazzCash or Binance, then WhatsApp us the <b>payment screenshot + your Machine ID</b> and plan (monthly / lifetime).</p></div>
+    <div class="step"><h3>Paste your key</h3><p>We send back a license key. Paste it into the Activate box — done. Your app is now licensed.</p></div>
+  </div>
+  <div style="text-align:center;margin-top:26px">
+    <a class="btn btn-primary" href="https://wa.me/923084973164?text=Hi%2C%20I%20want%20to%20buy%20Shortify%20Desktop.%20My%20Machine%20ID%20is%3A%20" target="_blank">💬 Message on WhatsApp to buy →</a>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="band" id="download">
+    <h2>Download &amp; get started</h2>
+    <p class="lead" style="margin-bottom:22px">Download the installer and run it — ffmpeg and everything the app needs is bundled. Then open the app to see your Machine ID.</p>
+    <a class="btn btn-green" id="dlbtn" href="Shortify_Setup.exe" download>⬇ Download Installer (Windows)</a>
+    <div class="req">
+      <span>🪟 Windows 10 / 11 (64-bit)</span>
+      <span>🔒 Runs without admin</span>
+      <span>📦 ffmpeg bundled</span>
+    </div>
+    <div class="note">ℹ️ The app needs a license key to make shorts. Install it, copy your Machine ID from the Activate screen, then buy above — we'll send your key on WhatsApp.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p><b>Shortify Desktop</b> — by ClipCut Studio. Long videos → viral shorts on your own PC.</p>
+    <p style="margin-top:8px">Support &amp; licenses: <a href="https://wa.me/923084973164" target="_blank">WhatsApp +92 308 4973164</a> · <a href="https://clipcutstudio.co/shortify/">Try the free browser version</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
