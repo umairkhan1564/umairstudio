@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Facebook login</title>
+<style>
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:#14161c; color:#e9e7e3;
+         font:16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .box { max-width:420px; padding:28px; text-align:center; }
+  a { color:#ff6b35; }
+</style>
+</head>
+<body>
+<div class="box">
+  <p id="msg">Facebook login app par wapas bheja ja raha hai…</p>
+  <p><a id="go" href="#">Agar khud na khule to yahan click karein</a></p>
+</div>
+<script>
+  // OAuth bridge for the desktop app: Facebook (LIVE apps) only redirects to
+  // https, so it lands here and we hand ?code&state straight to the app's own
+  // listener on THIS computer. Only that fixed localhost address is used —
+  // nothing is sent to or stored on this server.
+  (function () {
+    var p = new URLSearchParams(location.search), out = new URLSearchParams();
+    ["code", "state", "error", "error_reason", "error_description"].forEach(function (k) {
+      if (p.has(k)) out.set(k, p.get(k));
+    });
+    var target = "http://localhost:8765/?" + out.toString();
+    document.getElementById("go").href = target;
+    if (!p.has("state")) {
+      document.getElementById("msg").textContent = "Ye page sirf app ke Facebook login ke liye hai.";
+      return;
+    }
+    history.replaceState(null, "", location.pathname);   // drop the code from the address bar
+    location.replace(target);
+  })();
+</script>
+</body>
+</html>
