@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EG393DZYJ8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-EG393DZYJ8');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipCut AutoPilot — Facebook Page Automation for Windows</title>
+<meta name="description" content="All-in-one Windows app for Facebook page creators: paste a link or a creator profile and AutoPilot downloads, makes shorts and publishes to your pages — daily, scheduled, with per-ID IP routes, page insights and automatic updates.">
+<link rel="canonical" href="https://clipcutstudio.co/autopilot/">
+<meta property="og:title" content="ClipCut AutoPilot — your Facebook content machine, on your PC">
+<meta property="og:description" content="Link → download → shorts → publish → delete. Daily link feeds, scheduling, Meta API + browser IDs, per-ID IP routes, insights, Creator Finder. Windows app.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clipcutstudio.co/autopilot/">
+<meta property="og:image" content="https://clipcutstudio.co/og.png">
+<style>
+  :root{
+    --bg:#faf9ff; --side:#f5f2fd; --card:#ffffff; --card2:#f5f2fd;
+    --accent:#7c3aed; --accent2:#a855f7; --green:#16a34a; --text:#1b1433;
+    --muted:#6b6486; --border:#ded7f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.55;
+    background-image:radial-gradient(600px 400px at 15% -5%, rgba(124,58,237,.07), transparent),
+                     radial-gradient(500px 400px at 100% 10%, rgba(168,85,247,.05), transparent);}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:0 22px}
+  .btn{display:inline-block;padding:15px 30px;border-radius:40px;font-weight:700;font-size:17px;
+    transition:transform .12s ease, box-shadow .12s ease;cursor:pointer;border:none}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    box-shadow:0 10px 30px rgba(124,58,237,.25)}
+  .btn-green{background:var(--green);color:#ffffff;box-shadow:0 10px 30px rgba(22,163,74,.22)}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .topnav{display:flex;justify-content:center;gap:8px;padding:14px 0;flex-wrap:wrap}
+  .topnav a{color:var(--muted);font-size:14px;padding:6px 12px;border-radius:20px}
+  .topnav a:hover{color:var(--accent)}
+  header{padding:40px 0 40px;text-align:center}
+  .badge{display:inline-block;background:var(--green);color:#ffffff;font-weight:800;
+    padding:7px 18px;border-radius:30px;font-size:13px;letter-spacing:.5px;margin-bottom:26px}
+  .logo{width:92px;height:92px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 12px 34px rgba(124,58,237,.30)}
+  h1{font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-1px}
+  h1 .g{background:linear-gradient(135deg,var(--accent),#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:19px;margin:16px auto 8px;max-width:660px}
+  .kinds{color:var(--accent);font-weight:700;font-size:17px;margin:10px 0 30px;letter-spacing:.5px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .trust{color:var(--muted);font-size:13px;margin-top:16px}
+  section{padding:46px 0}
+  h2{font-size:30px;font-weight:800;text-align:center;margin-bottom:8px}
+  .lead{color:var(--muted);text-align:center;max-width:660px;margin:0 auto 34px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .feat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+  .feat h3{font-size:17px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .feat p{color:var(--muted);font-size:14px}
+  .tick{color:var(--green);font-weight:800}
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .step{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:22px 22px 22px 66px;position:relative}
+  .step:before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:20px;
+    width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:16px;margin-bottom:4px}
+  .step p{color:var(--muted);font-size:14px}
+  .req{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  .req span{background:var(--card);border:1px solid var(--border);border-radius:30px;padding:9px 18px;font-size:14px;color:var(--muted)}
+  .band{background:linear-gradient(135deg,rgba(124,58,237,.09),rgba(124,58,237,.08));
+    border:1px solid var(--border);border-radius:24px;text-align:center;padding:44px 24px;margin:30px 0}
+  .band h2{margin-bottom:14px}
+  .note{background:#fff8ec;border:1px solid #f2d9a8;color:#7a5310;border-radius:12px;padding:12px 16px;
+    font-size:13.5px;max-width:640px;margin:16px auto 0}
+  .note a{color:#7a5310;text-decoration:underline}
+  footer{text-align:center;color:var(--muted);padding:40px 0 60px;font-size:14px;border-top:1px solid var(--border);margin-top:30px}
+  footer a{color:var(--accent);font-weight:700}
+  @media(max-width:720px){
+    h1{font-size:34px}.grid,.steps{grid-template-columns:1fr}.sub{font-size:17px}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="topnav">
+    <a href="https://clipcutstudio.co/">← All tools</a>
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#download">Download</a>
+    <a href="https://wa.me/923084973164" target="_blank">WhatsApp</a>
+  </nav>
+</div>
+
+<header>
+  <div class="wrap">
+    <span class="badge">● NEW · VERSION 2.1</span>
+    <div class="logo">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.5 6h9M6.5 8.2l4.2 7.6M17.5 8.2l-4.2 7.6"/>
+      </svg>
+    </div>
+    <h1>ClipCut <span class="g">AutoPilot</span></h1>
+    <p class="sub">Your whole Facebook content machine — on your own PC. Paste a link or a creator profile: AutoPilot <b>downloads, makes shorts and publishes to your pages</b>, every day, on schedule.</p>
+    <p class="kinds">🔗 Link → Post · 📅 Daily feeds · 🌐 Per-ID IP routes · 📊 Auto insights</p>
+    <div class="cta-row">
+      <a class="btn btn-green" href="#download">⬇ Download for Windows</a>
+      <a class="btn btn-ghost" href="https://wa.me/923084973164?text=Hi%2C%20I%20want%20ClipCut%20AutoPilot." target="_blank">💬 Get a license</a>
+    </div>
+    <p class="trust">Windows 10/11 (64-bit) · Runs on your PC — not on our servers · Updates itself</p>
+  </div>
+</header>
+
+<section class="wrap" id="features">
+  <h2>Everything in one app</h2>
+  <p class="lead">Downloader, Shortify and the Bulk Uploader — merged into one place, plus automation they never had.</p>
+  <div class="grid">
+    <div class="feat"><h3><span class="tick">✓</span> 🔗 Auto Pipeline</h3><p>Paste video links or creator profiles (TikTok, Instagram, YouTube, Facebook…). It downloads, optionally makes shorts, posts to your pages — then deletes the files from your PC.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🔁 Daily link feeds</h3><p>Save a profile link to a page once — every day AutoPilot posts its new videos. A video already posted to a page is never posted again.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 📅 Schedule days ahead</h3><p>“2 a day × 7 days” — videos are scheduled on Facebook itself, so they go out even when your PC is off.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 📋 Bulk: link → page</h3><p>Many links, each to its own page, in one go. Check how many reels and videos a profile has before you start.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🔌 Meta API + browser IDs</h3><p>Connect your own Meta app (official API) or your Facebook IDs. Log in on another PC or RDP and keep the ID there.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🌐 An IP for every ID</h3><p>Each Facebook ID gets its own route — direct, proxy or VPN extension — and each Meta app its own API IP. See the IP and country of every ID.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 📊 Dashboard &amp; insights</h3><p>Every page at a glance: posted, failed, queue, followers, views, reach, engagement and monetization — refreshed automatically.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> ✂️ Shortify built in</h3><p>Long videos → AI-picked shorts with face tracking and animated captions, straight into your posting queue.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> 🔎 Creator Finder</h3><p>Find Instagram creators by hashtag or account, see followers and reels share, and check whether they already have a Facebook page.</p></div>
+    <div class="feat"><h3><span class="tick">✓</span> ⬆ Updates itself</h3><p>Signed automatic updates — new features arrive without reinstalling. Optional WhatsApp alerts for every run.</p></div>
+  </div>
+</section>
+
+<section class="wrap" id="how">
+  <h2>How it works</h2>
+  <p class="lead">Set it up once — then it runs every day.</p>
+  <div class="steps">
+    <div class="step"><h3>Install &amp; activate</h3><p>Download the installer, open AutoPilot and send us your Machine ID (Settings → License) to get your key.</p></div>
+    <div class="step"><h3>Connect your pages</h3><p>Add your Meta app or Facebook IDs in Connections, with an IP route for each ID.</p></div>
+    <div class="step"><h3>Give it content</h3><p>Paste links or creator profiles in Auto Pipeline, or save them as a daily feed for each page.</p></div>
+    <div class="step"><h3>Let it run</h3><p>Posts go out daily or on schedule. Watch the results and insights on the Dashboard.</p></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="band" id="download">
+    <h2>Download ClipCut AutoPilot</h2>
+    <p class="lead" style="margin-bottom:22px">One installer — the downloader engines, ffmpeg and everything else are bundled. Your data stays on your PC.</p>
+    <a class="btn btn-green" id="dlbtn" href="https://downloader.clipcutstudio.co/downloads/autopilot/ClipCutAutoPilot-Setup.exe">⬇ Download Installer (Windows · 350 MB)</a>
+    <div class="req">
+      <span>🪟 Windows 10 / 11 (64-bit)</span>
+      <span>🌐 Google Chrome installed</span>
+      <span>🔒 No admin needed</span>
+      <span>💾 ~1.5 GB free space</span>
+    </div>
+    <div class="note">⚠ Windows may show “Windows protected your PC” because the installer is new — click <b>More info → Run anyway</b>. AutoPilot updates itself after install. Need a license or help with setup? <a href="https://wa.me/923084973164?text=Hi%2C%20I%20need%20help%20with%20ClipCut%20AutoPilot." target="_blank"><b>WhatsApp us</b></a>.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p><b>ClipCut AutoPilot</b> — by ClipCut Studio. Publish to pages you own or manage, with content you have the rights to use.</p>
+    <p style="margin-top:8px">Support &amp; licenses: <a href="https://wa.me/923084973164" target="_blank">WhatsApp +92 308 4973164</a> · <a href="https://clipcutstudio.co/privacy/">Privacy</a> · <a href="https://clipcutstudio.co/terms/">Terms</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

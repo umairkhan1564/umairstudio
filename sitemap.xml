@@ -61,6 +61,11 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://clipcutstudio.co/autopilot/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://clipcutstudio.co/privacy/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
